@@ -1,3 +1,10 @@
+ let buttons = document.querySelectorAll("button");
+
+  buttons.forEach(button => {
+    button.classList.add("btn", "btn-primary");
+  });
+
+
  function loadSubjects(streamID) {
       fetch(`/getSubjects/${streamID}`)
         .then(res => res.json())
@@ -7,6 +14,7 @@
           data.forEach(subject => {
             streamSelect.innerHTML += `<option value="${subject.subjectID}">${subject.subjectName}</option>`;
           });
+          console.log(streamSelect.value);
         });
     }
 

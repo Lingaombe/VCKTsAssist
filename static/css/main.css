@@ -1,0 +1,7 @@
+body{
+    margin: 10px;
+}
+
+.btn:active{
+    transform: scale(0.9);
+}
