@@ -50,6 +50,8 @@ def verifyAddQuestionBank():
     #name cleanup
     safeName = "".join(c for c in questionBankName if c.isalnum() or c == "_")
     questionBankName = safeName.lower()
+    Name = "".join(c for c in bankQuestionType if c.isalnum() or c == "_")
+    bankQuestionType = Name.lower()
 
     tables = cursor.fetchall()
     questionBanks = []
@@ -60,28 +62,32 @@ def verifyAddQuestionBank():
 
     if questionBankName not in questionBanks:
         if bankQuestionType == "MCQ":
-            cursor.execute("INSERT INTO questionBanks (questionBankName) VALUES (%s);",(questionBankName,))
+            cursor.execute("INSERT INTO questionBanks (questionBankName, questionBankType) VALUES (%s, %s);",(questionBankName,bankQuestionType))
             cursor.execute(f"""create table {questionBankName}(
                 questionID int primary key auto_increment,
+                questionBankType varchar(10) default '{bankQuestionType}',
                 questionBody TEXT not null,
                 questionOption1 varchar(100) not null,
                 questionOption2 varchar(100) not null,
                 questionOption3 varchar(100) not null,  
                 questionOption4 varchar(100) not null,        
-                questionMarks int not null
+                questionMarks int not null,
+                foreign key (questionBankType) references questionBanks(questionBankType)
             );""")
             conn.commit()
             flash(f"✅ Question Bank '{questionBankName}' created successfully!")
             return redirect('/addMcqQuestions')
         
         else:
-            cursor.execute("INSERT INTO questionBanks (questionBankName) VALUES (%s);",(questionBankName,))
+            cursor.execute("INSERT INTO questionBanks (questionBankName, questionBankType) VALUES (%s, %s);",(questionBankName,bankQuestionType))
             cursor.execute(f"""create table {questionBankName}(
                 questionID int primary key auto_increment,
+                questionBankType varchar(10) default '{bankQuestionType}',
                 questionBody TEXT not null,     
-                questionMarks int not null
+                questionMarks int not null,
+                foreign key (questionBankType) references questionBanks(questionBankType)
             );""")
-            conn.commit
+            conn.commit()
             flash(f"✅ Question Bank '{questionBankName}' created successfully!")
             return redirect('/addQuestions')
     else:
@@ -92,11 +98,15 @@ def verifyAddQuestionBank():
 
 @app.route('/addMcqQuestions')
 def addMcqQuestions():
-    return render_template('addMcqQuestions.html')
+    cursor.execute("select * from questionBanks;")
+    QuestionBanks = cursor.fetchall()
+    return render_template('addMcqQuestions.html', QuestionBanks=QuestionBanks)
 
 @app.route('/addQuestions')
 def addQuestions():
-    return render_template('addQuestions.html')
+    cursor.execute("select * from questionBanks;")
+    QuestionBanks = cursor.fetchall()
+    return render_template('addQuestions.html', QuestionBanks=QuestionBanks)
 
 
 @app.route('/viewQuestionBanks')
