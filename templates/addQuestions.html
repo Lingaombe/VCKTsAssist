@@ -12,7 +12,7 @@
     <select id="questionBank" name="questionBank" required>
         <option value="">Select questionBank</option>
         {% for questionBank in QuestionBanks %}
-            <option value="{{ questionBank.questionBanksID }}">{{ questionBank.questionBankName }}</option>
+            <option value="{{ questionBank.questionBankID }}">{{ questionBank.questionBankName }} {{questionBank.courseID}} {{questionBank.questionBankType}}</option>
         {% endfor %}
     </select>
     <br><br>

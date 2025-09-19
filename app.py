@@ -44,6 +44,8 @@ def getCourses(subjectID, semester):
 def verifyAddQuestionBank():
     questionBankName = request.args.get("bankName")
     bankQuestionType = request.args.get("bankType")
+    courseID = request.args.get("course")
+
     cursor.execute("use VCKTsAssist;")
     cursor.execute("show tables;")
 
@@ -60,38 +62,25 @@ def verifyAddQuestionBank():
             questionBanks.append(i[j])
     print(questionBanks)
 
-    if questionBankName not in questionBanks:
-        if bankQuestionType == "MCQ":
-            cursor.execute("INSERT INTO questionBanks (questionBankName, questionBankType) VALUES (%s, %s);",(questionBankName,bankQuestionType))
-            cursor.execute(f"""create table {questionBankName}(
-                questionID int primary key auto_increment,
-                questionBankType varchar(10) default '{bankQuestionType}',
-                questionBody TEXT not null,
-                questionOption1 varchar(100) not null,
-                questionOption2 varchar(100) not null,
-                questionOption3 varchar(100) not null,  
-                questionOption4 varchar(100) not null,        
-                questionMarks int not null,
-                foreign key (questionBankType) references questionBanks(questionBankType)
-            );""")
-            conn.commit()
-            flash(f"✅ Question Bank '{questionBankName}' created successfully!")
+    if questionBankName in questionBanks:
+        flash("❌ Name already exists, please pick another name")
+        return redirect('/addQuestionBank')
+    
+    try:
+        cursor.execute(
+            "INSERT INTO questionBanks (courseID, questionBankType, questionBankName) VALUES (%s, %s, %s);",
+            (courseID, bankQuestionType, questionBankName)
+        )
+        conn.commit()
+        flash(f"✅ Question Bank '{safeName}' created successfully!")
+
+        if bankQuestionType == "mcq":
             return redirect('/addMcqQuestions')
-        
         else:
-            cursor.execute("INSERT INTO questionBanks (questionBankName, questionBankType) VALUES (%s, %s);",(questionBankName,bankQuestionType))
-            cursor.execute(f"""create table {questionBankName}(
-                questionID int primary key auto_increment,
-                questionBankType varchar(10) default '{bankQuestionType}',
-                questionBody TEXT not null,     
-                questionMarks int not null,
-                foreign key (questionBankType) references questionBanks(questionBankType)
-            );""")
-            conn.commit()
-            flash(f"✅ Question Bank '{questionBankName}' created successfully!")
             return redirect('/addQuestions')
-    else:
-        flash("❌Name already exists, please pick another name")
+
+    except Exception as e:
+        flash(f"❌ Error creating question bank: {str(e)}")
         return redirect('/addQuestionBank')
 
     

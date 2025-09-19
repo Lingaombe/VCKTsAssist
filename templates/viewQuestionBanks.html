@@ -9,7 +9,7 @@
 </head>
 <body>
     {% for questionBank in QuestionBanks %}
-        <li>{{ questionBank.questionBankName }} {{questionBank.questionBankType}}</li>
+        <li>{{ questionBank.questionBankName }} {{questionBank.questionBankType}} {{questionBank.courseID}}</li>
     {% endfor %}
 
     <button>winner takes all</button>
