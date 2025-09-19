@@ -11,9 +11,9 @@
     {% with messages = get_flashed_messages() %}
     {% if messages %}
         {% for msg in messages %}
-        <div class="alert alert-info" role="alert">
+        <P class="alert alert-info" role="alert">
             {{ msg }}
-        </div>
+        </P>
         {% endfor %}
     {% endif %}
     {% endwith %}
@@ -32,10 +32,16 @@
         <textarea cols="40" rows="4" id="questionText" name="questionText" type="text" placeholder="Enter your question here" required></textarea>
         <br><br>
 
+        <ul class="optionsList" id="option">
+            <li>Option 1: <input name="option" type="text" required></li><br>
+            <li>Option 2: <input name="option" type="text" required></li><br>
+            <li>Option 3: <input name="option" type="text" required></li><br>
+            <li>Option 4: <input name="option" type="text" required></li><br>
+        </ul>
+        <br>
         <label for="marks">Allotted marks:</label>
         <input name="marks" id="marks" type="text" pattern="[0-9]+" required title="Only numbers allowed" placeholder="Enter marks">
         <br><br>
-
         <button class="btn btn-primary" type="submit">Add Question</button>
         <br>
     </form>

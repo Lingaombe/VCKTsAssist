@@ -5,3 +5,7 @@ body{
 .btn:active{
     transform: scale(0.9);
 }
+
+.optionsList{
+    list-style: none;
+}

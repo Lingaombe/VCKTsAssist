@@ -46,24 +46,17 @@ def verifyAddQuestionBank():
     bankQuestionType = request.args.get("bankType")
     courseID = request.args.get("course")
 
-    cursor.execute("use VCKTsAssist;")
-    cursor.execute("show tables;")
-
     #name cleanup
     safeName = "".join(c for c in questionBankName if c.isalnum() or c == "_")
     questionBankName = safeName.lower()
-    Name = "".join(c for c in bankQuestionType if c.isalnum() or c == "_")
-    bankQuestionType = Name.lower()
+    typeName = "".join(c for c in bankQuestionType if c.isalnum() or c == "_")
+    bankQuestionType = typeName.lower()
 
-    tables = cursor.fetchall()
-    questionBanks = []
-    for i in tables:
-        for j in i:
-            questionBanks.append(i[j])
-    print(questionBanks)
+    cursor.execute("SELECT questionBankName FROM questionBanks;")
+    questionBanks = [row["questionBankName"] for row in cursor.fetchall()]
 
     if questionBankName in questionBanks:
-        flash("❌ Name already exists, please pick another name")
+        flash("Name already exists, please pick another name")
         return redirect('/addQuestionBank')
     
     try:
@@ -72,7 +65,7 @@ def verifyAddQuestionBank():
             (courseID, bankQuestionType, questionBankName)
         )
         conn.commit()
-        flash(f"✅ Question Bank '{safeName}' created successfully!")
+        flash(f"Question Bank '{safeName}' created successfully!")
 
         if bankQuestionType == "mcq":
             return redirect('/addMcqQuestions')
@@ -80,22 +73,52 @@ def verifyAddQuestionBank():
             return redirect('/addQuestions')
 
     except Exception as e:
-        flash(f"❌ Error creating question bank: {str(e)}")
+        flash(f"Error creating question bank: {str(e)}")
         return redirect('/addQuestionBank')
 
     
-
 @app.route('/addMcqQuestions')
 def addMcqQuestions():
-    cursor.execute("select * from questionBanks;")
+    cursor.execute("SELECT * FROM questionBanks WHERE questionBankType=%s;",("mcq",))
     QuestionBanks = cursor.fetchall()
     return render_template('addMcqQuestions.html', QuestionBanks=QuestionBanks)
 
 @app.route('/addQuestions')
 def addQuestions():
-    cursor.execute("select * from questionBanks;")
+    cursor.execute("SELECT * FROM questionBanks WHERE questionBankType !=  %s;",("mcq",))
     QuestionBanks = cursor.fetchall()
     return render_template('addQuestions.html', QuestionBanks=QuestionBanks)
+
+
+@app.route('/submitQuestion', methods=['POST'])
+def submitQuestion():
+    questionBankID = request.form.get("questionBank")
+    questionBody = request.form.get("questionText")
+    questionMarks = int(request.form.get("marks"))
+    print(questionBankID, questionBody, questionMarks)
+
+    cursor.execute("SELECT questionBankType FROM questionBanks WHERE questionBankID=%s", (questionBankID,))
+    questionBankType = cursor.fetchone()["questionBankType"]
+    
+    try:
+        if questionBankType == "mcq":
+            options = request.form.getlist("option")
+            cursor.execute("INSERT INTO questions (questionBankID, questionBody, questionOption1, questionOption2, questionOption3, questionOption4, questionMarks) VALUES (%s, %s, %s, %s, %s, %s, %s);", 
+                           (questionBankID, questionBody, *options, questionMarks))
+            conn.commit()
+            flash("MCQ question added!")
+            return redirect("/addMcqQuestions")
+        else:
+            cursor.execute("INSERT INTO questions (questionBankID, questionBody, questionMarks) VALUES (%s, %s, %s);", 
+                           (questionBankID, questionBody, questionMarks))
+            conn.commit()
+            flash("Question added!")
+            return redirect("/addQuestions")
+    except Exception as e:
+        flash(f"Error adding question: {str(e)}")
+        return redirect("/addQuestionBank")
+    
+    return "Question submitted"
 
 
 @app.route('/viewQuestionBanks')
@@ -107,6 +130,13 @@ def viewQuestionBanks():
     return render_template('viewQuestionBanks.html', QuestionBanks=QuestionBanks)
 
 
+#ngati yagwiritsidwa kale ntchito
+# cursor.execute("""
+#     UPDATE questions
+#     SET questionUsed = TRUE
+#     WHERE questionID = %s
+# """, (questionID,))
+# conn.commit()
 @app.errorhandler(404)
 def pageNotFound(error):
     return render_template('pageNotFound.html'), 404
