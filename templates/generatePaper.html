@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/main.css">
+    <title>Document</title>
+</head>
+<body>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for msg in messages %}
+        <div class="alert alert-info" role="alert">
+            {{ msg }}
+        </div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <h2>Generate Question Paper</h2><br>
+
+    <form action="/paperGenerated" method="post">
+
+        <label for="stream">Select the stream:</label>
+        <select id="stream" name="stream" onchange="loadSubjects(this.value)" required>
+            <option value="">Select Stream</option>
+            {% for stream in Streams %}
+            <option value="{{ stream.streamID }}">{{ stream.streamName }} {{ stream.streamLevel }}</option>
+            {% endfor %}
+        </select>
+        <br><br>
+
+        <label for="subject">Select the Subject:</label>
+        <select id="subject" name="subject" onchange="loadCourses()" required>
+            <option value="">Select Subject</option>
+        </select>
+        <br><br>
+
+        <label for="semester">Select the Semester:</label>
+        <select id="semester" name="semester" required onchange="loadCourses()">
+            <option value="" selected>Select Semester</option>
+            <option value="I">Semester I</option>
+            <option value="II">Semester II</option>
+            <option value="III">Semester III</option>
+            <option value="IV">Semester IV</option>
+            <option value="V">Semester V</option>
+            <option value="VI">Semester VI</option>
+        </select>
+        <br><br>
+
+        <label for="course">Select the Course:</label>
+        <select id="course" name="course" required onchange="loadQuestionBanks(this.value)">
+            <option value="">Select Course</option>
+        </select><br><br>
+
+        <label for="questionBank">Question Banks available in selected Course. Select all question banks to be used in paper:</label><br>
+        <div id="banks">
+            {% for questionBank in QuestionBanks %}
+                <input type="checkbox" name="bankNames" value="{{ questionBank.questionBankID }}"/>{{ questionBank.questionBankName }} {{questionBank.courseID}} {{questionBank.questionBankType}} <br>
+            {% endfor %}
+        </div>
+        <br><br>
+
+        <label for="marks">Select Exam Structure:</label>
+        <select id="marks" name="marks" required>
+            <option value="">Internal/External</option>
+            <option value="INT">Internal Exam</option>
+            <option value="EXT">External Exam</option>
+            <option value="PR">Practical Exam</option>
+        </select><br><br>
+        
+        <button type="submit">Generate Paper</button>
+    </form>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/script.js"></script>
+</html>

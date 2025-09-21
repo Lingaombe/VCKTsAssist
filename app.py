@@ -1,4 +1,5 @@
 from flask import *
+from utils import *
 import pandas as pd
 
 import mysql.connector
@@ -118,7 +119,6 @@ def submitQuestion():
         flash(f"Error adding question: {str(e)}")
         return redirect("/addQuestionBank")
     
-    return "Question submitted"
 
 
 @app.route('/viewQuestionBanks')
@@ -128,6 +128,67 @@ def viewQuestionBanks():
     print(QuestionBanks)
 
     return render_template('viewQuestionBanks.html', QuestionBanks=QuestionBanks)
+
+
+@app.route("/generatePaper")
+def generatePaper():
+
+    cursor.execute("SELECT streamID, streamName, streamLevel FROM Streams")
+    Streams = cursor.fetchall()
+    
+    return render_template("generatePaper.html", Streams=Streams)
+
+@app.route("/getBanks/<courseID>")
+def getBanks(courseID):
+
+    cursor.execute("SELECT * FROM questionBanks WHERE courseID=%s", (courseID,))
+    QuestionBanks = cursor.fetchall()
+
+    return jsonify( QuestionBanks)
+
+@app.post("/paperGenerated")
+def paperGenerated():
+    paperStream = request.form.get("stream")
+    paperSubject = request.form.get("subject")
+    paperSemester = request.form.get("semester")
+    paperCourse = request.form.get("course")
+    questionBanks = request.form.getlist("banks")
+    paperStructure = request.form.get("marks")
+
+    cursor.execute("SELECT * FROM courses where courseID=%s;", (paperCourse,))
+    paper = cursor.fetchall()
+
+    if paperStructure == "INT":
+        try:
+            totalMarks = paper[0]["marksInternal"]
+        except Exception as e:
+            flash(f"Error in chosen Structure: {str(e)}")
+            return redirect("/generatePaper")
+        
+    elif paperStructure == "EXT":
+        try:
+            totalMarks = paper[0]["marksExternal"]
+        except Exception as e:
+            flash(f"Error in chosen Structure: {str(e)}")
+            return redirect("/generatePaper")
+        
+    elif paperStructure == "PR":
+        try:
+            totalMarks = paper[0]["marksPractical"]
+        except Exception as e:
+            flash(f"Error in chosen Structure: {str(e)}")
+            return redirect("/generatePaper")
+        
+    print(totalMarks)
+
+    assemblePaper(totalMarks, questionBanks, paperStructure)
+
+    paperDetails = [
+        paperStream, paperSubject, paperSemester, 
+        paperCourse, questionBanks, paperStructure, totalMarks
+    ]
+
+    return render_template("paperGenerated.html", paperDetails=paperDetails)
 
 
 #ngati yagwiritsidwa kale ntchito

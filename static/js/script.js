@@ -32,3 +32,17 @@
           });
         });
     }
+
+    function loadQuestionBanks(courseID) {
+      fetch(`/getBanks/${courseID}`)
+        .then(res => res.json())
+        .then(data => {
+          let bankInput = document.getElementById("banks");
+          bankInput.innerHTML = "";
+          data.forEach(questionBank => {
+            bankInput.innerHTML += `<input type="checkbox" name="bankNames" value="${questionBank.questionBankID}"/>${questionBank.questionBankName} ${questionBank.courseID} ${questionBank.questionBankType}`;
+          });
+          console.log(bankInput.value);
+        });
+      loadStructure(courseID)
+    }
