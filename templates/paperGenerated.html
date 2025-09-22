@@ -10,8 +10,49 @@
 <body>
     <div class="paper">
         <div class="header">
-            <img src="" title="Vivekanand College Logo">
-            <h2>Vivekanand College, Kolhapur</h2>
+            <img src="/assets/founder.png" title="Vivekanand College Founder">
+            <img src="/assets/logo.png" title="Vivekanand College Logo">
+            <h3>Vivekanand College, Kolhapur</h3>
+        </div>
+        <p>Affiliated to Shivaji University</p>
+        <p>Examination of {{paperDetails[0]}} {{paperDetails[1]}} in Semester {{paperDetails[2]}}</p>
+        <p>{{paperDetails[3]}}</p>
+        <p>Total Marks {{paperDetails[5]}}</p>
+        <!-- <div class="body">
+            {% if paperDetails[0] == 100 %}
+                {% include "BSc.html" %}
+            {% endif %}
+        </div> -->
+        <div class="body">
+            <p style="text-align: center;">Answer all questions</p>
+            {% set i=0 %}
+            {% for mcq in mcqQuestions %}
+                <li class="question">{{mcq["questionBody"]}}</li> 
+                <ol class="mcqs">
+                    <li>{{mcq["option1"]}}</li>
+                    <li>{{mcq["option2"]}}</li>
+                    <li>{{mcq["option3"]}}</li>
+                    <li>{{mcq["option4"]}}</li>
+                </ol>
+            {% endfor %}
+            <br>
+            {% if paperDetails[4] == "EXT" %}
+                <p style="text-align: center;">Choose 2 questions(16 marks)</p>
+                {% for laq in laqQuestions %}
+                    <li class="question">{{laq}}</li>
+                {% endfor %}
+            {% endif %}
+            <br>
+            {% if paperDetails[4] == "INT" %}
+                <p style="text-align: center;">Choose any 2 questions (8 marks)</p>
+            {% elif paperDetails[4] == "EXT" %}
+                <p style="text-align: center;">Choose any 4 questions (16 marks)</p>
+            {% endif %}
+            {% for saq in saqQuestions %}
+                <li class="question">{{saq}}</li>
+            {% endfor %}
+            <br>
+            
         </div>
     </div>
     <button onclick="printPage()">Print Paper</button>

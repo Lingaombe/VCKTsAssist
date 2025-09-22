@@ -152,52 +152,68 @@ def paperGenerated():
     paperSubject = request.form.get("subject")
     paperSemester = request.form.get("semester")
     paperCourse = request.form.get("course")
-    questionBanks = request.form.getlist("banks")
+    checkedQuestionBanks = [int(bank) for bank in request.form.getlist("bankNames")]
+    if not checkedQuestionBanks:
+        flash("Choose atleast one bank")
+        return redirect("/generatePaper")
+
     paperStructure = request.form.get("marks")
 
     cursor.execute("SELECT * FROM courses where courseID=%s;", (paperCourse,))
-    paper = cursor.fetchall()
+    paper = cursor.fetchone()
+    paperSemester = paper["courseSem"]
+    paperCourse = paper["courseName"]
 
-    if paperStructure == "INT":
-        try:
-            totalMarks = paper[0]["marksInternal"]
-        except Exception as e:
-            flash(f"Error in chosen Structure: {str(e)}")
+    try:
+        if paperStructure == "INT":
+            totalMarks = paper["marksInternal"]
+        elif paperStructure == "EXT":
+            totalMarks = paper["marksExternal"]
+        elif paperStructure == "PR":
+            totalMarks = paper["marksPractical"]
+        else:
+            flash("Invalid paper structure")
             return redirect("/generatePaper")
+    except Exception as e:
+        flash(f"Error retrieving marks: {str(e)}")
+        return redirect("/generatePaper")
         
-    elif paperStructure == "EXT":
-        try:
-            totalMarks = paper[0]["marksExternal"]
-        except Exception as e:
-            flash(f"Error in chosen Structure: {str(e)}")
-            return redirect("/generatePaper")
-        
-    elif paperStructure == "PR":
-        try:
-            totalMarks = paper[0]["marksPractical"]
-        except Exception as e:
-            flash(f"Error in chosen Structure: {str(e)}")
-            return redirect("/generatePaper")
-        
-    print(totalMarks)
+    mcqQuestions, saqQuestions, laqQuestions = assemblePaper(totalMarks, checkedQuestionBanks, paperStructure)
 
-    assemblePaper(totalMarks, questionBanks, paperStructure)
+    errorCheck()
+    cursor.execute("SELECT streamName FROM Streams WHERE streamID=%s;", (paperStream,))
+    paperStream = cursor.fetchone()["streamName"]
+
+    cursor.execute("SELECT subjectName FROM Subjects WHERE subjectID=%s;", (paperSubject,))
+    paperSubject = cursor.fetchone()["subjectName"]
 
     paperDetails = [
         paperStream, paperSubject, paperSemester, 
-        paperCourse, questionBanks, paperStructure, totalMarks
+        paperCourse, paperStructure, totalMarks
     ]
+    if paperStructure == "INT":
+        if not mcqQuestions or not saqQuestions:
+            flash("not enough questions in database")
+            return redirect("/addQuestionBank")
+        else:
+            return render_template("paperGenerated.html", paperDetails=paperDetails, mcqQuestions=mcqQuestions, saqQuestions=saqQuestions, laqQuestions=laqQuestions)
 
-    return render_template("paperGenerated.html", paperDetails=paperDetails)
+
+    elif paperStructure == "EXT":
+        if not mcqQuestions or not saqQuestions or not laqQuestions:
+            flash("not enough questions in database")
+            return redirect("/addQuestionBank")
+        else:
+            return render_template("paperGenerated.html", paperDetails=paperDetails, mcqQuestions=mcqQuestions, saqQuestions=saqQuestions, laqQuestions=laqQuestions)
+        
+    elif paperStructure == "PR":
+        if not saqQuestions or not laqQuestions:
+            flash("not enough questions in database")
+            return redirect("/addQuestionBank")
+        else:
+            return render_template("paperGenerated.html", paperDetails=paperDetails, mcqQuestions=mcqQuestions, saqQuestions=saqQuestions, laqQuestions=laqQuestions)
 
 
-#ngati yagwiritsidwa kale ntchito
-# cursor.execute("""
-#     UPDATE questions
-#     SET questionUsed = TRUE
-#     WHERE questionID = %s
-# """, (questionID,))
-# conn.commit()
 @app.errorhandler(404)
 def pageNotFound(error):
     return render_template('pageNotFound.html'), 404

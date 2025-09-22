@@ -55,21 +55,21 @@
         </select><br><br>
 
         <label for="questionBank">Question Banks available in selected Course. Select all question banks to be used in paper:</label><br>
-        <div id="banks">
+        <li id="banks">
             {% for questionBank in QuestionBanks %}
-                <input type="checkbox" name="bankNames" value="{{ questionBank.questionBankID }}"/>{{ questionBank.questionBankName }} {{questionBank.courseID}} {{questionBank.questionBankType}} <br>
+                <input type="checkbox" name="bankNames" value=""/>{{ questionBank.questionBankName }} {{questionBank.courseID}} {{questionBank.questionBankType}} <br>
             {% endfor %}
-        </div>
+        </li>
         <br><br>
 
         <label for="marks">Select Exam Structure:</label>
         <select id="marks" name="marks" required>
-            <option value="">Internal/External</option>
+            <option value="">Exam Structure</option>
             <option value="INT">Internal Exam</option>
             <option value="EXT">External Exam</option>
             <option value="PR">Practical Exam</option>
         </select><br><br>
-        
+
         <button type="submit">Generate Paper</button>
     </form>
 </body>

@@ -39,10 +39,10 @@
         .then(data => {
           let bankInput = document.getElementById("banks");
           bankInput.innerHTML = "";
-          data.forEach(questionBank => {
-            bankInput.innerHTML += `<input type="checkbox" name="bankNames" value="${questionBank.questionBankID}"/>${questionBank.questionBankName} ${questionBank.courseID} ${questionBank.questionBankType}`;
+          data.forEach(questionBanks => {
+            bankInput.innerHTML += `<input type="checkbox" name="bankNames" value="${questionBanks.questionBankID}"/>${questionBanks.questionBankName} ${questionBanks.courseID} ${questionBanks.questionBankType} <br>`;
           });
-          console.log(bankInput.value);
         });
-      loadStructure(courseID)
     }
+
+    function printPage(){}

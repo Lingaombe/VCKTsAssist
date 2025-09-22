@@ -9,3 +9,12 @@ body{
 .optionsList{
     list-style: none;
 }
+.question{
+    list-style: decimal;
+    margin: 10px;
+}
+.mcqs{
+    list-style: lower-alpha;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+}
