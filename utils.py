@@ -3,7 +3,7 @@ from utils import *
 import pandas as pd
 
 import mysql.connector
-conn = mysql.connector.connect(host="localhost", user="root", password="", database="VCKTsAssist") 
+conn = mysql.connector.connect(host="", user="", password="", database="") 
 cursor = conn.cursor(dictionary=True)
 
 
