@@ -1,9 +1,17 @@
 from flask import *
 from utils import *
 import pandas as pd
+from dotenv import load_dotenv
+import os
+
+load_dotenv() 
 
 import mysql.connector
-conn = mysql.connector.connect(host="localhost", user="root", password="Lingaombe@2001", database="VCKTsAssist") 
+conn = mysql.connector.connect(
+    host="localhost", 
+    user="root", 
+    password=os.getenv("userPassword"), 
+    database=os.getenv("userDatabase")) 
 cursor = conn.cursor(dictionary=True)
 
 
@@ -11,7 +19,7 @@ if conn.is_connected():
     print("Successfully connected to the database")
 
 app = Flask(__name__)
-app.secret_key = "744d5ca4b473aa1cda78ae760abd166d255e2e732d1fe5e7f8c88db00e507f1f"
+app.secret_key = os.getenv("secretKey")
 
 @app.route('/')
 def home():
