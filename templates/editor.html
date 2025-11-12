@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CKEditor + MathJax with Flask</title>
+  <script src="https://cdn.ckeditor.com/ckeditor5/41.2.1/classic/ckeditor.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 40px;
+      background: #f5f5f5;
+    }
+    #editor {
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 16px;
+      min-height: 250px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: none;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🧮 Flask + CKEditor + MathJax</h2>
+
+  <form method="POST">
+    <!-- Hidden textarea to store editor data -->
+    <textarea name="editorContent" id="hidden-editor" style="display:none;">{{ content|safe }}</textarea>
+
+    <div id="editor">{{ content|safe }}</div>
+
+    <button type="submit">💾 Save Content</button>
+  </form>
+
+  <script>
+    let editorInstance;
+
+    ClassicEditor.create(document.querySelector('#editor'), {
+      toolbar: [
+        'heading', '|',
+        'bold', 'italic', 'link', '|',
+        'bulletedList', 'numberedList', '|',
+        'insertTable', 'undo', 'redo'
+      ],
+      math: {
+        engine: 'mathjax',
+        outputType: 'script',
+        lazyLoad: undefined
+      }
+    })
+    .then(editor => {
+      editorInstance = editor;
+      console.log("CKEditor loaded!");
+      
+      // Render existing MathJax content
+      MathJax.typesetPromise();
+
+      // Update MathJax whenever content changes
+      editor.model.document.on('change:data', () => {
+        MathJax.typesetPromise();
+      });
+
+      // When form is submitted, copy content into hidden textarea
+      document.querySelector("form").addEventListener("submit", () => {
+        document.getElementById("hidden-editor").value = editorInstance.getData();
+      });
+    })
+    .catch(err => console.error(err));
+  </script>
+
+</body>
+</html>
