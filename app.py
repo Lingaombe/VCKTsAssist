@@ -7,11 +7,15 @@ import os
 load_dotenv() 
 
 import mysql.connector
+<<<<<<< HEAD
 conn = mysql.connector.connect(
     host="localhost", 
     user="root", 
     password=os.getenv("userPassword"), 
     database=os.getenv("userDatabase")) 
+=======
+conn = mysql.connector.connect(host="", user="", password="", database="") 
+>>>>>>> e2c1d0ea986e79b88c81803c864266d84167606f
 cursor = conn.cursor(dictionary=True)
 
 
