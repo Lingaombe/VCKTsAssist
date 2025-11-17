@@ -7,7 +7,7 @@ import os
 load_dotenv() 
 
 import mysql.connector
-conn = mysql.connector.connect(host="", user="", password="", database="") 
+conn = mysql.connector.connect(host="localhost", user="root", password="Lingaombe@2001", database="VCKTsAssist") 
 cursor = conn.cursor(dictionary=True)
 
 

@@ -7,7 +7,7 @@ import os
 load_dotenv() 
 
 import mysql.connector
-conn = mysql.connector.connect(host="", user="", password="", database="") 
+conn = mysql.connector.connect(host="localhost", user="root", password="Lingaombe@2001", database="VCKTsAssist") 
 cursor = conn.cursor(dictionary=True)
 
 
@@ -217,6 +217,11 @@ def paperGenerated():
         else:
             return render_template("paperGenerated.html", paperDetails=paperDetails, mcqQuestions=mcqQuestions, saqQuestions=saqQuestions, laqQuestions=laqQuestions)
 
+
+#dashboard
+@app.route('/dashboard')
+def dashboard():
+    return render_template('dashboard.html')
 
 @app.errorhandler(404)
 def pageNotFound(error):
