@@ -2,52 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>CKEditor + MathJax with Flask</title>
-  <script src="https://cdn.ckeditor.com/ckeditor5/41.2.1/classic/ckeditor.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/latest.js?config=AM_CHTML"></script>
-  <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=default'></script>
+  <title>TsAssist</title>
 </head>
 <body>
-  <form method="POST">
-    <textarea name="editorContent" id="hidden-editor" style="display:none;">{{ content|safe }}</textarea>
-    <div id="editor">{{ content|safe }}</div>
-  </form>
-
-  <script>
-    let editorInstance;
-
-    ClassicEditor.create(document.querySelector('#editor'), {
-      toolbar: [
-        'heading', '|',
-        'bold', 'italic', 'link', '|',
-        'bulletedList', 'numberedList', '|',
-        'insertTable', 'undo', 'redo'
-      ],
-      math: {
-        engine: 'mathjax',
-        outputType: 'script',
-      }
-    })
-    .then(editor => {
-      editorInstance = editor;
-      console.log("CKEditor loaded!");
-      
-      // Render existing MathJax content
-      MathJax.typesetPromise();
-
-      // Update MathJax whenever content changes
-      editor.model.document.on('change:data', () => {
-        MathJax.typesetPromise();
-      });
-
-      // When form is submitted, copy content into hidden textarea
-      document.querySelector("form").addEventListener("submit", () => {
-        document.getElementById("hidden-editor").value = editorInstance.getData();
-      });
-    })
-    .catch(err => console.error(err));
-  </script>
-
+  text editor
 </body>
 </html>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/main.css">
-    <title>Document</title>
+    <title>TsAssist</title>
 </head>
 <body>
     {% with messages = get_flashed_messages() %}
@@ -17,8 +17,8 @@
         {% endfor %}
     {% endif %}
     {% endwith %}
-
-    <form action="/submitQuestion" method="POST">
+    <h3>Add Questions</h3>
+    <form action="/submitQuestion" method="POST" class="quesForm">
         <label for="questionBank">questionBank:</label>
         <select id="questionBank" name="questionBank" required>
             <option value="">Select questionBank</option>
@@ -28,7 +28,7 @@
         </select>
         <br><br>
 
-        <label for="questionText">Enter question:</label>
+        <label for="questionText">Enter question:</label><br>
         <textarea cols="40" rows="4" id="questionText" name="questionText" type="text" placeholder="Enter your question here" required></textarea>
         <br><br>
 
@@ -39,7 +39,13 @@
             <li>Option 4: <input name="option" type="text" required></li><br>
         </ul>
         <br>
-        <label for="marks">Allotted marks:</label>
+        <label for="difficulty">Difficulty level A (easy), B, C:</label><br>
+        <input name="difficulty" id="difficulty" type="text" pattern="[a-cA-C]+" required title="Only A-C allowed" placeholder="Enter difficulty">
+        <br><br>
+        <label for="unit">Enter Unit:</label><br>
+        <input name="unit" id="unit" type="text" pattern="[0-9]+" required title="Only numbers" placeholder="Enter unit">
+        <br><br>
+        <label for="marks">Allotted marks:</label><br>
         <input name="marks" id="marks" type="text" pattern="[0-9]+" required title="Only numbers allowed" placeholder="Enter marks">
         <br><br>
         <button class="btn btn-primary" type="submit">Add Question</button>

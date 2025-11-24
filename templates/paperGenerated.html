@@ -6,25 +6,69 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/main.css">
     <title>Generated Paper</title>
+
+    <style>
+        body{
+            margin: 20px;
+        }
+        th, td {
+            border: 1px solid black;
+            column-width: 100px;
+        }
+        .header{
+            display: grid;
+            grid-template-columns: 300px 300px;
+            gap: 30vw;
+        }
+        .dets{
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
     <div class="paper">
         <div class="header">
-            <img src="/assets/founder.png" title="Vivekanand College Founder">
-            <img src="/assets/logo.png" title="Vivekanand College Logo">
-            <h3>Vivekanand College, Kolhapur</h3>
+            <table>
+                <tr>
+                    <td><p>Seat No.</p></td>
+                    <td><p></p></td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td><p>Ques. Paper Code</p></td>
+                    <td><p></p></td>
+                </tr>
+            </table>
         </div>
-        <p>Affiliated to Shivaji University</p>
-        <p>Examination of {{paperDetails[0]}} {{paperDetails[1]}} in Semester {{paperDetails[2]}}</p>
-        <p>{{paperDetails[3]}}</p>
-        <p>Total Marks {{paperDetails[5]}}</p>
-        <!-- <div class="body">
-            {% if paperDetails[0] == 100 %}
-                {% include "BSc.html" %}
-            {% endif %}
-        </div> -->
+        <br>
+        <div class="dets">
+            <p><b>VIVEKANAND COLLEGE, KOLHAPUR</b></p>
+            <p>(AN EMPOWERED AUTONOMOUS INSTITUTE)</p>
+            <p>B.Sc. Part {{paperDetails[6]}} ({{paperDetails[1]}}) (Semester-{{paperDetails[2]}}) Examination:____________________</p>
+            <p>Course Code and Name: <b>{{paperDetails[7]}}: {{paperDetails[3]}}</b></p>
+        </div>
+        
+        <div class="header">
+            <div class="day">
+                <p>Day:</p>
+                <p>Date:</p>
+            </div>
+            <div class="duration">
+                <p>Time:</p>
+                <p>Marks: {{paperDetails[5]}}</p>
+            </div>
+        </div>
+        <div class="inst">
+            <p><b>Instructions:</b></p>
+            <!-- ol
+                for i in instructionsList:
+                    <li>{{i}}</li>
+            -->
+        </div>
+
         <div class="body">
-            <p style="text-align: center;">Answer all questions</p>
+            <p><b>Q.1. Select correct alternative (One mark each):</b></p>
             {% set i=0 %}
             {% for mcq in mcqQuestions %}
                 <li class="question">{{mcq["questionBody"]}}</li> 
@@ -37,16 +81,16 @@
             {% endfor %}
             <br>
             {% if paperDetails[4] == "EXT" %}
-                <p style="text-align: center;">Choose 2 questions(16 marks)</p>
+                <p><b>Attempt any TWO (Eight marks each):</b></p>
                 {% for laq in laqQuestions %}
                     <li class="question">{{laq}}</li>
                 {% endfor %}
             {% endif %}
             <br>
             {% if paperDetails[4] == "INT" %}
-                <p style="text-align: center;">Choose any 2 questions (8 marks)</p>
+                <p><b>Attempt any TWO (Four marks each):</b></p>
             {% elif paperDetails[4] == "EXT" %}
-                <p style="text-align: center;">Choose any 4 questions (16 marks)</p>
+                <p><b>Attempt any FOUR (Four marks each):</b></p>
             {% endif %}
             {% for saq in saqQuestions %}
                 <li class="question">{{saq}}</li>
@@ -55,8 +99,16 @@
             
         </div>
     </div>
-    <button onclick="printPage()">Print Paper</button>
+    <button onclick="Print()" id="btn">Print Paper</button>
 </body>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/static/js/script.js"></script>
+<script>
+    function Print(){
+        let btn = document.getElementById("btn");
+        btn.style.display = 'none';
+        window.print();
+        btn.style.display = 'block';
+    }
+</script>
 </html>

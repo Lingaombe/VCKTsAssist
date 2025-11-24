@@ -1,19 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/main.css">
-    <title>Document</title>
-</head>
-<body>
-    <a href="/addQuestionBank">Add Question Bank</a><br>
-    <a href="/viewQuestionBanks">View Question Banks</a><br>
-    <a href="/addMcqQuestions">Add MCQ Questions</a><br>
-    <a href="/addQuestions">Add Questions</a><br>
-    <a href="/generatePaper">Generate Paper</a><br>
-    <a href="/dashboard">Dashboard</a><br>
-</body>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="/static/js/script.js"></script>
-</html>
+{% include 'poyambira.html' %}
+
+{% block title %} TsAssist Here {% endblock %}
+
+<a  data-bs-toggle="offcanvas" href="#offcanvasExample" role="button" aria-controls="offcanvasExample">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+    <path fill="none" stroke="#008efa" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 17h14M5 12h14M5 7h14" />
+  </svg>
+</a>
+
+
+<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="offcanvasExampleLabel">Offcanvas</h5>
+    <button type="button" class="btn-close text-reset" btn-close-color="#008efa" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+    <div>
+      <a href="/addQuestionBank">Add Question Bank</a><br>
+      <a href="/viewQuestionBanks">View Question Banks</a><br>
+      <a href="/addMcqQuestions">Add MCQ Questions</a><br>
+      <a href="/addQuestions">Add Questions</a><br>
+      <a href="/generatePaper">Generate Paper</a><br>
+      <a href="/dashboard">Dashboard</a><br>
+    </div>
+    <div class="dropdown mt-3">
+      <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown">
+        Add Questions
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+        <li><a class="dropdown-item" href="/addMcqQuestions">MCQs</a></li>
+        <li><a class="dropdown-item" href="/addQuestions">Other</a></li>
+      </ul>
+    </div>
+  </div>
+</div>

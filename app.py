@@ -19,6 +19,15 @@ app.secret_key = os.getenv("secretKey")
 
 @app.route('/')
 def home():
+    return render_template('login.html')
+
+@app.route('/signup')
+def signup():
+    return render_template('signup.html')
+
+
+@app.route('/home')
+def homeMain():
     return render_template('index.html')
 
 @app.route('/addQuestionBank')
@@ -165,6 +174,7 @@ def paperGenerated():
 
     cursor.execute("SELECT * FROM courses where courseID=%s;", (paperCourse,))
     paper = cursor.fetchone()
+    paperCode = paper["courseID"]
     paperSemester = paper["courseSem"]
     paperCourse = paper["courseName"]
 
@@ -191,9 +201,18 @@ def paperGenerated():
     cursor.execute("SELECT subjectName FROM Subjects WHERE subjectID=%s;", (paperSubject,))
     paperSubject = cursor.fetchone()["subjectName"]
 
+    if paperSemester == "I" or paperSemester == "II":
+        paperYear = "I"
+    elif paperSemester == "1II" or paperSemester == "IV":
+        paperYear = "II"
+    elif paperSemester == "V" or paperSemester == "VI":
+        paperYear = "III"
+    else:
+        paperYear = "IV"
+
     paperDetails = [
-        paperStream, paperSubject, paperSemester, 
-        paperCourse, paperStructure, totalMarks
+        paperStream, paperSubject, paperSemester, paperCourse, 
+        paperStructure, totalMarks, paperYear, paperCode
     ]
     if paperStructure == "INT":
         if not mcqQuestions or not saqQuestions:
