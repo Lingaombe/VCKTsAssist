@@ -138,7 +138,6 @@ def submitQuestion():
 def viewQuestionBanks():
     cursor.execute("select * from questionBanks;")
     QuestionBanks = cursor.fetchall()
-    print(QuestionBanks)
 
     return render_template('viewQuestionBanks.html', QuestionBanks=QuestionBanks)
 

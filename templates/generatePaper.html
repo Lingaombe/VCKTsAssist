@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/form.css">
     <title>TsAssist</title>
 </head>
 <body>
@@ -18,12 +19,10 @@
     {% endif %}
     {% endwith %}
 
-    <h2>Generate Question Paper</h2><br>
+    <form class="form" action="/paperGenerated" method="post">
+        <h2>Generate Question Paper</h2><br>
 
-    <form action="/paperGenerated" method="post">
-
-        <label for="stream">Select the stream:</label>
-        <select id="stream" name="stream" onchange="loadSubjects(this.value)" required>
+        <select id="stream" name="stream" onchange="loadSubjects(this.value)" required class="form-select">
             <option value="">Select Stream</option>
             {% for stream in Streams %}
             <option value="{{ stream.streamID }}">{{ stream.streamName }} {{ stream.streamLevel }}</option>
@@ -31,14 +30,12 @@
         </select>
         <br><br>
 
-        <label for="subject">Select the Subject:</label>
-        <select id="subject" name="subject" onchange="loadCourses()" required>
+        <select id="subject" name="subject" onchange="loadCourses()" required class="form-select">
             <option value="">Select Subject</option>
         </select>
         <br><br>
 
-        <label for="semester">Select the Semester:</label>
-        <select id="semester" name="semester" required onchange="loadCourses()">
+        <select id="semester" name="semester" required onchange="loadCourses()" class="form-select">
             <option value="" selected>Select Semester</option>
             <option value="I">Semester I</option>
             <option value="II">Semester II</option>
@@ -49,21 +46,19 @@
         </select>
         <br><br>
 
-        <label for="course">Select the Course:</label>
-        <select id="course" name="course" required onchange="loadQuestionBanks(this.value)">
+        <select id="course" name="course" required onchange="loadQuestionBanks(this.value)" class="form-select">
             <option value="">Select Course</option>
         </select><br><br>
 
-        <label for="questionBank">Question Banks available in selected Course. Select all question banks to be used in paper:</label><br>
-        <li id="banks">
+        <label for="questionBank" class="form-text">Question Banks available in selected Course. Select all question banks to be used in paper:</label><br>
+        <li id="banks" class="text-start list-unstyled">
             {% for questionBank in QuestionBanks %}
-                <input type="checkbox" name="bankNames" value=""/>{{ questionBank.questionBankName }} {{questionBank.courseID}} {{questionBank.questionBankType}} <br>
+                <input type="checkbox" name="bankNames" value=""/><p class="fw-bold"><b>{{ questionBank.questionBankName }} {{questionBank.courseID}} {{questionBank.questionBankType}}</b></p><br>
             {% endfor %}
         </li>
         <br><br>
 
-        <label for="marks">Select Exam Structure:</label>
-        <select id="marks" name="marks" required>
+        <select id="marks" name="marks" required class="form-select">
             <option value="">Exam Structure</option>
             <option value="INT">Internal Exam</option>
             <option value="EXT">External Exam</option>
