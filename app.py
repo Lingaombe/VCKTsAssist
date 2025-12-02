@@ -1,5 +1,6 @@
 from flask import *
 from utils import *
+from dash import *
 import pandas as pd
 from dotenv import load_dotenv
 import os
@@ -36,7 +37,7 @@ def addQuestionBank():
     cursor.execute("SELECT streamID, streamName, streamLevel FROM Streams")
     Streams = cursor.fetchall()
 
-    return render_template("addQuestionBank.html", Streams=Streams)
+    return render_template("questions/addQuestionBank.html", Streams=Streams)
 
 @app.route("/getSubjects/<streamID>")
 def getSubjects(streamID):
@@ -96,13 +97,13 @@ def verifyAddQuestionBank():
 def addMcqQuestions():
     cursor.execute("SELECT * FROM questionBanks WHERE questionBankType=%s;",("mcq",))
     QuestionBanks = cursor.fetchall()
-    return render_template('addMcqQuestions.html', QuestionBanks=QuestionBanks)
+    return render_template('questions/addMcqQuestions.html', QuestionBanks=QuestionBanks)
 
 @app.route('/addQuestions')
 def addQuestions():
     cursor.execute("SELECT * FROM questionBanks WHERE questionBankType !=  %s;",("mcq",))
     QuestionBanks = cursor.fetchall()
-    return render_template('addQuestions.html', QuestionBanks=QuestionBanks)
+    return render_template('questions/addQuestions.html', QuestionBanks=QuestionBanks)
 
 
 @app.route('/submitQuestion', methods=['POST'])
@@ -140,7 +141,7 @@ def viewQuestionBanks():
     cursor.execute("select * from questionBanks;")
     QuestionBanks = cursor.fetchall()
 
-    return render_template('viewQuestionBanks.html', QuestionBanks=QuestionBanks)
+    return render_template('questions/viewQuestionBanks.html', QuestionBanks=QuestionBanks)
 
 
 @app.route("/generatePaper")
@@ -240,7 +241,16 @@ def paperGenerated():
 #dashboard
 @app.route('/dashboard')
 def dashboard():
-    return render_template('dashboard.html')
+    return render_template('hod/dashboard.html')
+
+@app.route('/editCourses')
+def editCourses():
+    return render_template('hod/editCourses.html')
+
+@app.route('/handleCourses', methods=['POST'])
+def handle():
+    x = handleCourses()
+    return render_template('index.html')
 
 @app.errorhandler(404)
 def pageNotFound(error):

@@ -1,5 +1,11 @@
 {% extends 'poyambira.html' %}
-    <h3>Add Questions</h3>
+
+{% block header %}
+    <h1 class="h2">Add Questions</h1>
+{% endblock %}
+
+{% block content %}
+<div>
     <form action="/submitQuestion" method="POST" class="quesForm">
         <label for="questionBank">questionBank:</label>
         <select id="questionBank" name="questionBank" required>
@@ -33,3 +39,5 @@
         <button class="btn btn-primary" type="submit">Add Question</button>
         <br>
     </form>
+</div>
+{% endblock %}

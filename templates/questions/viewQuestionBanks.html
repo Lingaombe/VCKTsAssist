@@ -1,0 +1,20 @@
+{% extends 'poyambira.html' %}
+
+{% block header %}
+    <h1 class="h2">Question Banks</h1>
+{% endblock %}
+
+{% block content %}
+<div>
+    <form class="p-2">
+        <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" name="search">
+    </form>
+    <ul class="list-group-flush">
+    {% for questionBank in QuestionBanks %}
+        <li class="list-group-item p-1">{{ questionBank.questionBankName }} {{questionBank.questionBankType}} {{questionBank.courseID}}</li>
+    {% endfor %}
+    </ul>
+    <button>winner takes all</button>
+    <button>and the loser has to follow</button>
+</div>
+{% endblock %}
