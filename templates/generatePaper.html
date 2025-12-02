@@ -21,41 +21,47 @@
 
     <form class="form" action="/paperGenerated" method="post">
         <h2>Generate Question Paper</h2><br>
-
-        <select id="stream" name="stream" onchange="loadSubjects(this.value)" required class="form-select">
-            <option value="">Select Stream</option>
-            {% for stream in Streams %}
-            <option value="{{ stream.streamID }}">{{ stream.streamName }} {{ stream.streamLevel }}</option>
-            {% endfor %}
-        </select>
-        <br><br>
-
-        <select id="subject" name="subject" onchange="loadCourses()" required class="form-select">
-            <option value="">Select Subject</option>
-        </select>
-        <br><br>
-
-        <select id="semester" name="semester" required onchange="loadCourses()" class="form-select">
-            <option value="" selected>Select Semester</option>
-            <option value="I">Semester I</option>
-            <option value="II">Semester II</option>
-            <option value="III">Semester III</option>
-            <option value="IV">Semester IV</option>
-            <option value="V">Semester V</option>
-            <option value="VI">Semester VI</option>
-        </select>
-        <br><br>
-
-        <select id="course" name="course" required onchange="loadQuestionBanks(this.value)" class="form-select">
-            <option value="">Select Course</option>
-        </select><br><br>
-
-        <label for="questionBank" class="form-text">Question Banks available in selected Course. Select all question banks to be used in paper:</label><br>
-        <li id="banks" class="text-start list-unstyled">
-            {% for questionBank in QuestionBanks %}
-                <input type="checkbox" name="bankNames" value=""/><p class="fw-bold"><b>{{ questionBank.questionBankName }} {{questionBank.courseID}} {{questionBank.questionBankType}}</b></p><br>
-            {% endfor %}
-        </li>
+        <div class="container text-center">
+            <div class="row">
+                <div class="col">
+                    <select id="stream" name="stream" onchange="loadSubjects(this.value)" required class="form-select">
+                        <option value="">Select Stream</option>
+                        {% for stream in Streams %}
+                        <option value="{{ stream.streamID }}">{{ stream.streamName }} {{ stream.streamLevel }}</option>
+                        {% endfor %}
+                    </select><br><br>
+                </div>
+                <div class="col">
+                    <select id="subject" name="subject" onchange="loadCourses()" required class="form-select">
+                        <option value="">Select Subject</option>
+                    </select><br><br>
+                </div>
+                <div class="col">
+                    <select id="semester" name="semester" required onchange="loadCourses()" class="form-select">
+                        <option value="" selected>Select Semester</option>
+                        <option value="I">Semester I</option>
+                        <option value="II">Semester II</option>
+                        <option value="III">Semester III</option>
+                        <option value="IV">Semester IV</option>
+                        <option value="V">Semester V</option>
+                        <option value="VI">Semester VI</option>
+                    </select><br><br>
+                </div>
+                <div class="col">
+                    <select id="course" name="course" required onchange="loadQuestionBanks(this.value)" class="form-select">
+                        <option value="">Select Course</option>
+                    </select><br><br>
+                </div>
+            </div>
+        </div>
+        <label for="questionBank" class="h6">Question Banks available in selected Course. Select all question banks to be used in paper:</label><br>
+        <ul class="list-group list-group-flush">
+            <li id="banks" class="text-start h6 list-unstyled list-group-item p-1">
+                {% for questionBank in QuestionBanks %}
+                    <input type="checkbox" name="bankNames" value=""/><p class="fw-bold"><b>{{ questionBank.questionBankName }} {{questionBank.courseID}} {{questionBank.questionBankType}}</b></p><br>
+                {% endfor %}
+            </li>
+        </ul>
         <br><br>
 
         <select id="marks" name="marks" required class="form-select">
@@ -65,8 +71,7 @@
             <option value="PR">Practical Exam</option>
         </select><br><br>
 
-        <label for="inst">Enter any specific instructions for the paper:</label><br>
-        <textarea id="inst" name="inst" rows="4" cols="50" placeholder="Enter instructions here..."></textarea>
+        <textarea id="inst" name="inst" rows="4" cols="50" placeholder="Enter any specific instructions here..."></textarea>
         <br><br>
 
         <button type="submit">Generate Paper</button>

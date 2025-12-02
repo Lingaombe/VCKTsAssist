@@ -1,9 +1,14 @@
 body{
     margin: 10px;
 }
-
+a{
+  text-decoration: none;
+}
 .btn:active{
     transform: scale(0.9);
+}
+.btn-link:hover {
+  background-color: #c9e4ff; 
 }
 
 .optionsList{
@@ -17,4 +22,63 @@ body{
     list-style: lower-alpha;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
+}
+select,
+::picker(select) {
+  appearance: base-select;
+}
+select {
+  border: 2px solid #dddddd;
+  background: #eeeeee;
+  padding: 10px;
+  transition: 0.4s;
+  width: 80%;
+}
+
+select:hover,
+select:focus {
+  background: #dddddd;
+}
+select::picker-icon {
+  color: #999999;
+  transition: 0.4s rotate;
+}
+select:open::picker-icon {
+  rotate: 180deg;
+}
+::picker(select) {
+  border: none;
+}
+option {
+  display: flex;
+  justify-content: flex-start;
+  gap: 20px;
+
+  border: 2px solid #dddddd;
+  background: #eeeeee;
+  padding: 10px;
+  transition: 0.4s;
+}
+option:first-of-type {
+  border-radius: 8px 8px 0 0;
+}
+
+option:last-of-type {
+  border-radius: 0 0 8px 8px;
+}
+
+::picker(select) {
+  border-radius: 8px;
+}
+
+option:not(option:last-of-type) {
+  border-bottom: none;
+}
+option:nth-of-type(odd) {
+  background: white;
+}
+
+option:hover,
+option:focus {
+  background: plum;
 }
