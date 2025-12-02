@@ -18,7 +18,7 @@ app = Flask(__name__)
 app.secret_key = os.getenv("secretKey")
 
 @app.route('/')
-def home():
+def login():
     return render_template('login.html')
 
 @app.route('/signup')
@@ -27,7 +27,8 @@ def signup():
 
 
 @app.route('/home')
-def homeMain():
+def home():
+    #if role is teacher, examiner, hod
     return render_template('index.html')
 
 @app.route('/addQuestionBank')
