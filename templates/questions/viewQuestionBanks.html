@@ -2,6 +2,7 @@
 
 {% block header %}
     <h1 class="h2">Question Banks</h1>
+    <a href="/addQuestionBank">Create New Question Bank</a>
 {% endblock %}
 
 {% block content %}
@@ -14,7 +15,5 @@
         <li class="list-group-item p-1">{{ questionBank.questionBankName }} {{questionBank.questionBankType}} {{questionBank.courseID}}</li>
     {% endfor %}
     </ul>
-    <button>winner takes all</button>
-    <button>and the loser has to follow</button>
 </div>
 {% endblock %}

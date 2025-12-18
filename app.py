@@ -6,7 +6,6 @@ import pandas as pd
 from dotenv import load_dotenv
 import os
 
-# nasna
 load_dotenv() 
 
 import mysql.connector
@@ -18,7 +17,7 @@ if conn.is_connected():
     print("Successfully connected to the database")
 
 app = Flask(__name__)
-app.secret_key = os.getenv("secretKey")
+app.secret_key = "secretKey"
 
 @app.route('/')
 def login():
@@ -94,6 +93,9 @@ def verifyAddQuestionBank():
         flash(f"Error creating question bank: {str(e)}")
         return redirect('/addQuestionBank')
 
+@app.route('/editQuestions')
+def editQuestions():
+    return render_template('questions/editQuestions.html')
     
 @app.route('/addMcqQuestions')
 def addMcqQuestions():
