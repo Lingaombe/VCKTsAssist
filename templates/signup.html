@@ -28,7 +28,7 @@
             backdrop-filter: blur(20px); 
             -webkit-backdrop-filter: blur(20px);
         }
-        input{
+        input, select{
             width: 80%;
             padding: 10px;
             border: 1px solid #ccc;
@@ -46,27 +46,44 @@
     </style>
 </head>
 <body>
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        {% for msg in messages %}
-        <div class="alert alert-info" role="alert">
-            {{ msg }}
-        </div>
-        {% endfor %}
-    {% endif %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for cat, msg in messages %}
+                <div class="toast align-items-center" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <div class="alert alert-{{cat}}" role="alert">
+                                {{ msg }}
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
     {% endwith %}
     <br>
     <form class="login" action="/handleSignup" method="post">
         <h2><b>Create Account</b></h2>
-        <br>m m
+        <br>
 
-        <input id="username" name="username" type="text" required placeholder="Username">
+        <input id="username" name="user" type="text" required placeholder="Username">
         <br><br>
 
-        <input id="email" name="email" type="email" required placeholder="Email">
+        <input id="email" name="mail" type="email" required placeholder="Email">
         <br><br>
 
-            <select id="pet-select">
+        <select id="stream" name="stream" onchange="loadSubjects(this.value)" required>
+            <option value="">Select Stream</option>
+                {% for stream in Streams %}
+                <option value="{{ stream.streamID }}">{{ stream.streamName }} {{ stream.streamLevel }}</option>
+                {% endfor %}
+        </select><br><br>
+        <select id="subject" name="subject" onchange="loadCourses()" required>
+            <option value="">Select Subject</option>
+        </select><br><br>
+
+        <select id="pet-select" name="userR">
             <option value="">
                 <span class="icon" aria-hidden="true"><i class="bi bi-briefcase"></i></span
                 ><span class="option-label">Select your role</span>
@@ -86,7 +103,7 @@
             </select>
         <br><br>
 
-        <input id="pass" placeholder="Password" type="password" aria-describedby="passwordHelpInline">
+        <input id="pass" placeholder="Password" type="password" name="pass" aria-describedby="passwordHelpInline">
         <br><br>
         <input id="pass1" placeholder="Confirm Password" type="password" aria-describedby="passwordHelpInline">
         <br><br>

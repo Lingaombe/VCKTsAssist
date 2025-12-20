@@ -43,13 +43,13 @@
 </style>
 </head>
 <body>
-    {% with messages = get_flashed_messages() %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-            {% for msg in messages %}
+            {% for cat, msg in messages %}
                 <div class="toast align-items-center" role="alert" aria-live="assertive" aria-atomic="true">
                     <div class="d-flex">
                         <div class="toast-body">
-                            <div class="alert alert-info" role="alert">
+                            <div class="alert alert-{{cat}}" role="alert">
                                 {{ msg }}
                             </div>
                         </div>
@@ -105,7 +105,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/">
+                        <a class="nav-link" href="/logout">
                             <i class="bi bi-box-arrow-right"></i>
                             Logout
                         </a>

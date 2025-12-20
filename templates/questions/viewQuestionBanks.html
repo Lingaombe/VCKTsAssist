@@ -10,10 +10,24 @@
     <form class="p-2">
         <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" name="search">
     </form>
-    <ul class="list-group-flush">
-    {% for questionBank in QuestionBanks %}
-        <li class="list-group-item p-1">{{ questionBank.questionBankName }} {{questionBank.questionBankType}} {{questionBank.courseID}}</li>
-    {% endfor %}
-    </ul>
+    <br>
+    <table class="table">
+        <thead>
+            <tr>
+            <th scope="col">Bank Name</th>
+            <th scope="col">Bank Type</th>
+            <th scope="col">Course ID</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for questionBank in QuestionBanks %}
+            <tr>
+            <td>{{ questionBank.questionBankName }}</td>
+            <td>{{questionBank.questionBankType}}</td>
+            <td> {{questionBank.courseID}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        </table>
 </div>
 {% endblock %}

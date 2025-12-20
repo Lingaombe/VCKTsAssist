@@ -1,5 +1,6 @@
 from flask import *
 from flask_login import *
+from passlib.hash import sha256_crypt
 from utils import *
 from dash import *
 import pandas as pd
@@ -19,19 +20,122 @@ if conn.is_connected():
 app = Flask(__name__)
 app.secret_key = "secretKey"
 
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+class User(UserMixin):
+    def __init__(self, id, username, email, role, subj):
+        self.id = id
+        self.username = username
+        self.email = email
+        self.role = role
+        self.subj = subj
+
+@login_manager.user_loader
+def load_user(id):
+    cursor.execute("SELECT * FROM Users WHERE id = %s", (id,))
+    user = cursor.fetchone()
+
+    if user:
+        return User(id=user['id'], username=user['username'], email=user['email'], role=user['urole'], subj=user['subjectID'])
+    return None
+
 @app.route('/')
-def login():
+def login():            
     return render_template('login.html')
 
-@app.route('/signup')
+@app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    return render_template('signup.html')
+    cursor.execute("SELECT streamID, streamName, streamLevel FROM Streams")
+    Streams = cursor.fetchall()
+    return render_template('signup.html', Streams=Streams)
 
+@app.route('/handleSignup', methods=['POST'])
+def handleSignup():
+    if request.method == 'POST':
+        username = request.form['user']
+        email = request.form['mail']
+        role = request.form['userR']
+        subj = request.form['subject']
+        password = sha256_crypt.encrypt(request.form['pass'])
+                
+        # Check if email already exists
+        cursor.execute("SELECT * FROM Users WHERE email = %s", [email])
+        existing_user = cursor.fetchone()
+        
+        if existing_user:
+            flash('Email already exists', 'danger')
+            return redirect('/signup')
+        
+        # Insert new user
+        cursor.execute("INSERT INTO Users (username, email, upassword, urole, subjectID) VALUES (%s, %s, %s, %s, %s)", 
+                   (username, email, password, role, subj))
+        conn.commit()
 
-@app.route('/home')
+        flash('Registration successful! Please login.', 'success')
+        return redirect('/')
+    return redirect('/signup')
+
+@app.route('/home', methods=['GET', 'POST'])
 def home():
-    #if role is teacher, examiner, hod
-    return render_template('index.html')
+    if request.method == 'POST':
+        mail = request.form['email']
+        password_candidate = request.form['password']
+                
+        # Get user by email
+        result = cursor.execute("SELECT * FROM Users WHERE email = %s", (mail,))
+        data = cursor.fetchone()
+        print(data)
+        
+        if data:
+            password = data['upassword']
+            
+            # Compare passwords
+            if sha256_crypt.verify(password_candidate, password):
+                user = User(id=data['id'], username=data['username'], role=data['urole'], email=data['email'], subj=data['subjectID'])
+                login_user(user)
+                flash('You are now logged in', 'success')
+
+                if current_user.role == 'hod':
+                    return redirect('hodDashboard')
+                if current_user.role == 'examiner':
+                    return redirect('examinerDashboard')
+                if current_user.role == 'teacher':
+                    return redirect('teacherDashboard')
+                else:
+                    flash('Invalid user role', 'danger')
+                    print('Invalid user role')
+                    return render_template('/editor.html')
+            else:
+                flash('Invalid password', 'danger')
+                return redirect('/')
+        else:
+            flash('User not found', 'danger')
+            return redirect('/')
+    return redirect('/')
+
+@app.route('/teacherDashboard')
+@login_required
+def teacherDashboard():     
+    return render_template('teacher/dashboard.html', username=current_user.username)
+
+@app.route('/examinerDashboard')
+@login_required
+def examinerDashboard():
+    return render_template('examiner/dashboard.html', username=current_user.username)
+
+@app.route('/hodDashboard')
+@login_required
+def hodDashboard():
+    return render_template('hod/dashboard.html', username=current_user.username)
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('You are now logged out', 'success')
+    return redirect('/')
 
 @app.route('/addQuestionBank')
 def addQuestionBank():

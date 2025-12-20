@@ -1,0 +1,19 @@
+{% extends 'poyambira.html' %}
+{% block header %}
+    <h1 class="h2">Teacher Dashboard</h1>
+    <div>
+        <a href="/teacher/classes">Manage Questions</a>
+        <a href="/teacher/assignments">Manage Banks</a>
+        <a href="/teacher/students">Student Performance</a>
+    </div>
+{% endblock %}
+
+{% block content %}
+<div>
+    <h3>Welcome, {{ username }}!</h3>
+    <p>This is your dashboard where you can manage your classes and students.</p>
+    <ul>
+        
+    </ul>
+</div>
+{% endblock %}

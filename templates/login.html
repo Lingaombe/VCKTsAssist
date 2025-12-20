@@ -45,21 +45,21 @@
     </style>
 </head>
 <body>
-    {% with messages = get_flashed_messages() %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-        {% for msg in messages %}
-        <div class="alert alert-info" role="alert">
-            {{ msg }}
-        </div>
+        <ul class=flashes>
+        {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
         {% endfor %}
+        </ul>
     {% endif %}
     {% endwith %}
     <br>
-    <form class="login" action="/home">
+    <form class="login" action="/home" method="post">
         <h2><b>Welcome Back</b></h2>
         <br>
 
-        <input id="username" name="username" type="text" required placeholder="Username">
+        <input id="username" name="email" type="email" required placeholder="Email">
         <br><br>
 
         <input id="password" name="password" type="password" required placeholder="Password">
