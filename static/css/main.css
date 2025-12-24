@@ -82,3 +82,22 @@ option:hover,
 option:focus {
   background: plum;
 }
+.flashes{
+  width: 10vw;
+  position: fixed;
+  top: 0;
+  left: 0;
+  margin: 0;
+  padding: 0;
+}
+.flashes li{
+  list-style: none;
+  background-color: hotpink;
+  border-radius: 8px;
+  font-weight: bold;
+  padding: 10px;
+}
+.success { background-color: green; }
+.warning { background-color: orange; }
+.error { background-color: red; }
+.info { background-color: blue; }
