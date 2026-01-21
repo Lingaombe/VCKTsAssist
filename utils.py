@@ -202,3 +202,6 @@ def getLAQs(laqBanksToUse, totalMarks):
     else:
         return []
 
+# bca
+# bcom
+# ba
