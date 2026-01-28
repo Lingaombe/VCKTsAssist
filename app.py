@@ -201,7 +201,27 @@ def verifyAddQuestionBank():
 
 @app.route('/editQuestions')
 def editQuestions():
-    return render_template('questions/editQuestions.html')
+    cursor.execute("select * from questionBanks;")
+    QuestionBanks = cursor.fetchall()
+
+    return render_template('questions/editQuestions.html', QuestionBanks=QuestionBanks)
+    
+@app.route('/search')
+def search():
+    # simple server-side search across name, type and courseID
+    q = request.args.get('search', '').strip()
+    if q:
+        like = f"%{q}%"
+        cursor.execute(
+            "SELECT * FROM questionBanks WHERE questionBankName LIKE %s OR questionBankType LIKE %s OR courseID LIKE %s;",
+            (like, like, like)
+        )
+        QuestionBanks = cursor.fetchall()
+    else:
+        cursor.execute("select * from questionBanks;")
+        QuestionBanks = cursor.fetchall()
+
+    return render_template('questions/editQuestions.html', QuestionBanks=QuestionBanks)
     
 @app.route('/addMcqQuestions')
 def addMcqQuestions():
