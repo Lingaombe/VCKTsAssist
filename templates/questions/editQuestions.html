@@ -26,7 +26,7 @@
         </thead>
         <tbody>
             {% for questionBank in QuestionBanks %}
-            <tr>
+            <tr style="cursor: pointer;" onclick="location.href='/viewQuestions/{{ questionBank.questionBankID }}'">
             <td>{{ questionBank.questionBankName }}</td>
             <td>{{questionBank.questionBankType}}</td>
             <td> {{questionBank.courseID}}</td>

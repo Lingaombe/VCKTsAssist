@@ -6,6 +6,17 @@
 {% endblock %}
 
 {% block content %}
+<!-- Quill Editor with KaTeX support -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+
+<style>
+  .ql-container { font-size: 14px; }
+  .ql-editor { min-height: 300px; }
+</style>
+
 <div>
     <form action="/submitQuestion" method="POST" class="quesForm">
         <label for="questionBank">questionBank:</label>
@@ -18,20 +29,37 @@
         <br><br>
 
         <label for="questionText">Enter question:</label><br>
-        <div id="editor">
-            <p>Hello World!</p>
-            <p>Some initial <strong>bold</strong> text</p>
-            <p><br /></p>
-        </div>
-        <textarea cols="40" rows="4" id="questionText" name="questionText" type="text" placeholder="Enter your question here" required></textarea>
+        <p style="font-size: 12px; color: #666;">Use the formula button (Σ) for LaTeX math. Use subscript/superscript buttons for H<sub>2</sub>O, E=mc<sup>2</sup>, etc.</p>
+        <div id="questionText" style="background-color: white; border: 1px solid #ccc;"></div>
+        <textarea id="questionText" name="questionText" style="display: none;" required></textarea>
         <br><br>
 
-        <ul class="optionsList" id="option">
-            <li>Option 1: <input name="option" type="text" required></li><br>
-            <li>Option 2: <input name="option" type="text" required></li><br>
-            <li>Option 3: <input name="option" type="text" required></li><br>
-            <li>Option 4: <input name="option" type="text" required></li><br>
-        </ul>
+        <label>MCQ Options:</label><br>
+        <p style="font-size: 12px; color: #666;">You can use formulas and subscripts in options too!</p>
+        
+        <div style="margin: 15px 0;">
+          <p><strong>Option 1:</strong></p>
+          <div id="option1" style="background-color: white; border: 1px solid #ccc; margin-bottom: 15px;"></div>
+          <textarea name="option1" style="display: none;" required></textarea>
+        </div>
+        
+        <div style="margin: 15px 0;">
+          <p><strong>Option 2:</strong></p>
+          <div id="option2" style="background-color: white; border: 1px solid #ccc; margin-bottom: 15px;"></div>
+          <textarea name="option2" style="display: none;" required></textarea>
+        </div>
+        
+        <div style="margin: 15px 0;">
+          <p><strong>Option 3:</strong></p>
+          <div id="option3" style="background-color: white; border: 1px solid #ccc; margin-bottom: 15px;"></div>
+          <textarea name="option3" style="display: none;" required></textarea>
+        </div>
+        
+        <div style="margin: 15px 0;">
+          <p><strong>Option 4:</strong></p>
+          <div id="option4" style="background-color: white; border: 1px solid #ccc; margin-bottom: 15px;"></div>
+          <textarea name="option4" style="display: none;" required></textarea>
+        </div>
         <br>
         <label for="difficulty">Difficulty level A (easy), B, C:</label><br>
         <input name="difficulty" id="difficulty" type="text" pattern="[a-cA-C]+" required title="Only A-C allowed" placeholder="Enter difficulty">
@@ -46,4 +74,68 @@
         <br>
     </form>
 </div>
+
+<style>
+  .ql-container { font-size: 14px; }
+  #questionText .ql-editor { min-height: 300px; }
+  #option1 .ql-editor, #option2 .ql-editor, #option3 .ql-editor, #option4 .ql-editor { min-height: 80px; }
+  #questionText {
+    width: 100%;
+    max-width: 1200px;
+  }
+  .ql-toolbar { border: 1px solid #ccc; border-bottom: none; }
+  .ql-container { border: 1px solid #ccc; }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    Quill.register('modules/formula', true);
+    
+    // Main question editor
+    const quill = new Quill('#questionText', {
+      theme: 'snow',
+      modules: {
+        toolbar: [
+          ['bold', 'italic', 'underline'],
+          [{ 'script': 'sub'}, { 'script': 'super' }],
+          ['blockquote', 'code-block'],
+          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+          ['link'],
+          ['formula']
+        ]
+      }
+    });
+    
+    // Option editors
+    const optionEditors = {};
+    for (let i = 1; i <= 4; i++) {
+      optionEditors[i] = new Quill(`#option${i}`, {
+        theme: 'snow',
+        modules: {
+          toolbar: [
+            ['bold', 'italic', 'underline'],
+            [{ 'script': 'sub'}, { 'script': 'super' }],
+            ['link'],
+            ['formula']
+          ]
+        }
+      });
+    }
+    
+    // On form submit, copy editor content to hidden fields
+    document.querySelector('.quesForm').addEventListener('submit', function() {
+      document.querySelector('textarea[name="questionText"]').value = quill.root.innerHTML;
+      
+      // Handle option editors
+      for (let i = 1; i <= 4; i++) {
+        const optionEditor = document.querySelector(`#option${i}`);
+        const optionTextarea = document.querySelector(`textarea[name="option${i}"]`);
+        if (optionEditor && optionTextarea) {
+          optionTextarea.value = optionEditor.querySelector('.ql-editor').innerHTML;
+        }
+      }
+    });
+  });
+</script>
+
 {% endblock %}

@@ -1,0 +1,125 @@
+{% extends 'poyambira.html' %}
+
+{% block header %}
+    <h1 class="h2">Welcome to VCKTsAssist</h1>
+{% endblock %}
+
+{% block content %}
+    <style>
+        .card {
+            border: 1px solid #007bff;
+        }
+        .card-header {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: white;
+        }
+        
+        /* Dark theme support */
+        body.dark-theme .card {
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+            border-color: #007bff;
+        }
+        
+        body.dark-theme .card-body {
+            color: #e0e0e0;
+        }
+        
+        body.dark-theme .card-title {
+            color: #e0e0e0;
+        }
+        
+        body.dark-theme .card-text {
+            color: #b0b0b0;
+        }
+    </style>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Welcome, {{ username }}!</h5>
+                    <p class="card-text">VCKTsAssist is your comprehensive platform for managing question banks, creating exams, and generating question papers.</p>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="bi bi-bank" style="font-size: 2rem; color: #007bff;"></i>
+                            <h5 class="card-title mt-3">Question Banks</h5>
+                            <p class="card-text">Organize and manage your question banks by course and type.</p>
+                            <a href="/viewQuestionBanks" class="btn btn-primary btn-sm">View Banks</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="bi bi-patch-question" style="font-size: 2rem; color: #28a745;"></i>
+                            <h5 class="card-title mt-3">Manage Questions</h5>
+                            <p class="card-text">Add, edit, and organize questions with support for formulas and subscripts.</p>
+                            <a href="/editQuestions" class="btn btn-success btn-sm">Manage</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="bi bi-file-earmark" style="font-size: 2rem; color: #ffc107;"></i>
+                            <h5 class="card-title mt-3">Generate Papers</h5>
+                            <p class="card-text">Create question papers with automatic selection from your banks.</p>
+                            <a href="/generatePaper" class="btn btn-warning btn-sm">Generate</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="bi bi-plus-circle" style="font-size: 2rem; color: #dc3545;"></i>
+                            <h5 class="card-title mt-3">Add New Bank</h5>
+                            <p class="card-text">Define the bank type (MCQ or Descriptive) and associate it with a specific course.</p>
+                            <a href="/addQuestionBank" class="btn btn-danger btn-sm">Create Bank</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Quick Stats</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>User Role:</strong> <span class="badge bg-info">{{ user_role }}</span></p>
+                    <p><strong>Subject:</strong> {{ subject }}</p>
+                    <hr>
+                    <p class="text-muted small">Use the sidebar navigation to access all features.</p>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0">Features</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled small">
+                        <li><i class="bi bi-check-circle text-success"></i> Support for formulas and subscripts</li>
+                        <li><i class="bi bi-check-circle text-success"></i> MCQ and descriptive questions</li>
+                        <li><i class="bi bi-check-circle text-success"></i> Auto paper generation</li>
+                        <li><i class="bi bi-check-circle text-success"></i> Multiple difficulty levels</li>
+                        <li><i class="bi bi-check-circle text-success"></i> Search functionality</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

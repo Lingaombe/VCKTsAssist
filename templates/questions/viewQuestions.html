@@ -1,0 +1,77 @@
+{% extends 'poyambira.html' %}
+{% block header %}
+    <h1 class="h2">Questions in {{ bank.questionBankName }}</h1>
+{% endblock %}
+
+{% block content %}
+    <div>
+        <a href="/editQuestions" class="btn btn-secondary mb-3">← Back to Question Banks</a>
+        <a href="/addMcqQuestions" class="btn btn-primary mb-3">Add MCQs</a>
+        <a href="/addQuestions" class="btn btn-primary mb-3">Add Questions</a>
+    </div>
+    
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">{{ bank.questionBankName }}</h5>
+            <p class="card-text">
+                <strong>Type:</strong> {{ bank.questionBankType }}<br>
+                <strong>Course ID:</strong> {{ bank.courseID }}
+            </p>
+        </div>
+    </div>
+
+    <h3>Questions ({{ questions|length }})</h3>
+    
+    {% if questions %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Question</th>
+                        <th scope="col">Marks</th>
+                        {% if bank.questionBankType == 'mcq' %}
+                        <th scope="col">Options</th>
+                        {% endif %}
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for question in questions %}
+                    <tr>
+                        <td>{{ question.questionID }}</td>
+                        <td>{{ question.questionBody[:100] }}{% if question.questionBody|length > 100 %}...{% endif %}</td>
+                        <td>{{ question.questionMarks }}</td>
+                        {% if bank.questionBankType == 'mcq' %}
+                        <td>
+                            <button class="btn btn-sm btn-info" onclick="showOptions({{ loop.index }})">View</button>
+                            <div id="options-{{ loop.index }}" style="display:none; margin-top: 10px;">
+                                {% if question.questionOption1 %}<p>A. {{ question.questionOption1 }}</p>{% endif %}
+                                {% if question.questionOption2 %}<p>B. {{ question.questionOption2 }}</p>{% endif %}
+                                {% if question.questionOption3 %}<p>C. {{ question.questionOption3 }}</p>{% endif %}
+                                {% if question.questionOption4 %}<p>D. {{ question.questionOption4 }}</p>{% endif %}
+                            </div>
+                        </td>
+                        {% endif %}
+                        <td>
+                            <a href="#" class="btn btn-sm btn-warning">Edit</a>
+                            <a href="#" class="btn btn-sm btn-danger">Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            No questions in this bank yet. <a href="/addQuestions">Add a question</a>
+        </div>
+    {% endif %}
+    
+    <script>
+        function showOptions(index) {
+            const optionsDiv = document.getElementById('options-' + index);
+            optionsDiv.style.display = optionsDiv.style.display === 'none' ? 'block' : 'none';
+        }
+    </script>
+{% endblock %}

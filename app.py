@@ -115,6 +115,11 @@ def home():
             return redirect('/')
     return redirect('/')
 
+@app.route('/main')
+@login_required
+def main():
+    return render_template('home.html', username=current_user.username, user_role=current_user.role, subject=current_user.subj)
+
 @app.route('/teacherDashboard')
 @login_required
 def teacherDashboard():     
@@ -223,6 +228,22 @@ def search():
 
     return render_template('questions/editQuestions.html', QuestionBanks=QuestionBanks)
     
+@app.route('/viewQuestions/<int:questionBankID>')
+def viewQuestions(questionBankID):
+    # Get the question bank details
+    cursor.execute("SELECT * FROM questionBanks WHERE questionBankID=%s", (questionBankID,))
+    bank = cursor.fetchone()
+    
+    if not bank:
+        flash("Question bank not found")
+        return redirect('/editQuestions')
+    
+    # Get all questions in this bank
+    cursor.execute("SELECT * FROM questions WHERE questionBankID=%s", (questionBankID,))
+    questions = cursor.fetchall()
+    
+    return render_template('questions/viewQuestions.html', bank=bank, questions=questions)
+
 @app.route('/addMcqQuestions')
 def addMcqQuestions():
     cursor.execute("SELECT * FROM questionBanks WHERE questionBankType=%s;",("mcq",))
@@ -248,9 +269,12 @@ def submitQuestion():
     
     try:
         if questionBankType == "mcq":
-            options = request.form.getlist("option")
+            option1 = request.form.get("option1")
+            option2 = request.form.get("option2")
+            option3 = request.form.get("option3")
+            option4 = request.form.get("option4")
             cursor.execute("INSERT INTO questions (questionBankID, questionBody, questionOption1, questionOption2, questionOption3, questionOption4, questionMarks) VALUES (%s, %s, %s, %s, %s, %s, %s);", 
-                           (questionBankID, questionBody, *options, questionMarks))
+                           (questionBankID, questionBody, option1, option2, option3, option4, questionMarks))
             conn.commit()
             flash("MCQ question added!")
             return redirect("/addMcqQuestions")
