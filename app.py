@@ -138,6 +138,7 @@ def logout():
     return redirect('/')
 
 @app.route('/addQuestionBank')
+@login_required
 def addQuestionBank():
     cursor.execute("SELECT streamID, streamName, streamLevel FROM Streams")
     Streams = cursor.fetchall()
@@ -154,6 +155,7 @@ def getSubjects(streamID):
     return jsonify(Subjects)
 
 @app.route("/getCourses/<subjectID>/<semester>")
+
 def getCourses(subjectID, semester):
     
     cursor.execute("SELECT courseID, courseName FROM Courses WHERE subjectID=%s and courseSem=%s", (subjectID, semester))

@@ -65,9 +65,9 @@ def getMCQs(mcqBanksToUse, totalMarks):
     availableQuestions = cursor.fetchall()
 
     mcqQuestions = []
-    # basic =[]
-    # medium = []
-    # complexQ = []
+    basic =[]
+    medium = []
+    complexQ = []
 
     # mafunso asakhale mu order yomwe ili mu table
     random.shuffle(availableQuestions)
@@ -75,37 +75,37 @@ def getMCQs(mcqBanksToUse, totalMarks):
     for question in availableQuestions:
         print(mcqMarks)
         if question["questionMarks"] <= mcqMarks:
-            # if question["questionGrade"] == "A":
-            #     basic.append({
-            #     "questionBody" : question["questionBody"], 
-            #     "option1" : question["questionOption1"], 
-            #     "option2" : question["questionOption2"],
-            #     "option3" : question["questionOption3"], 
-            #     "option4" : question["questionOption4"]
-            # })
-            # elif question["questionGrade"] == "B":
-            #     medium.append({
-            #     "questionBody" : question["questionBody"], 
-            #     "option1" : question["questionOption1"], 
-            #     "option2" : question["questionOption2"],
-            #     "option3" : question["questionOption3"], 
-            #     "option4" : question["questionOption4"]
-            # })
-            # elif question["questionGrade"] == "C":
-            #     complexQ.append({
-            #     "questionBody" : question["questionBody"], 
-            #     "option1" : question["questionOption1"], 
-            #     "option2" : question["questionOption2"],
-            #     "option3" : question["questionOption3"], 
-            #     "option4" : question["questionOption4"]
-            # })
-            mcqQuestions.append({
-                "questionBody" : question["questionBody"],
-                "option1" : question["questionOption1"],
+            if question["questionGrade"] == "A":
+                basic.append({
+                "questionBody" : question["questionBody"], 
+                "option1" : question["questionOption1"], 
                 "option2" : question["questionOption2"],
-                "option3" : question["questionOption3"],
+                "option3" : question["questionOption3"], 
                 "option4" : question["questionOption4"]
             })
+            elif question["questionGrade"] == "B":
+                medium.append({
+                "questionBody" : question["questionBody"], 
+                "option1" : question["questionOption1"], 
+                "option2" : question["questionOption2"],
+                "option3" : question["questionOption3"], 
+                "option4" : question["questionOption4"]
+            })
+            elif question["questionGrade"] == "C":
+                complexQ.append({
+                "questionBody" : question["questionBody"], 
+                "option1" : question["questionOption1"], 
+                "option2" : question["questionOption2"],
+                "option3" : question["questionOption3"], 
+                "option4" : question["questionOption4"]
+            })
+            # mcqQuestions.append({
+            #     "questionBody" : question["questionBody"],
+            #     "option1" : question["questionOption1"],
+            #     "option2" : question["questionOption2"],
+            #     "option3" : question["questionOption3"],
+            #     "option4" : question["questionOption4"]
+            # })
             mcqMarks -= question["questionMarks"]
             print(mcqMarks)
 
@@ -119,7 +119,7 @@ def getMCQs(mcqBanksToUse, totalMarks):
         if mcqMarks <= 0:
             break
 
-    # mcqQuestions.extend(basic, medium, complexQ)
+    mcqQuestions.extend(basic, medium, complexQ)
     
     if mcqMarks <= 0:
         return mcqQuestions
