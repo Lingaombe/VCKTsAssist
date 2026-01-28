@@ -1,0 +1,147 @@
+{% extends 'poyambira.html' %}
+
+{% block header %}
+    <h1 class="h2">My Profile</h1>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5>User Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Username</h6>
+                            <p class="fs-5"><strong>{{ user.username }}</strong></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Email</h6>
+                            <p class="fs-5"><strong>{{ user.email }}</strong></p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Department</h6>
+                            <p class="fs-5"><strong>{{ user.department }}</strong></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Role</h6>
+                            <p class="fs-5">
+                                <span class="badge" 
+                                    {% if user.role == 'teacher' %}
+                                        style="background-color: #28a745;"
+                                    {% elif user.role == 'examiner' %}
+                                        style="background-color: #007bff;"
+                                    {% elif user.role == 'hod' %}
+                                        style="background-color: #dc3545;"
+                                    {% endif %}>
+                                    {{ user.role | upper }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Member Since</h6>
+                            <p class="fs-5"><strong>{{ member_since }}</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">Account Summary</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="bi bi-patch-question text-success"></i>
+                            <strong>Role:</strong> {{ user.role | title }}
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-envelope text-info"></i>
+                            <strong>Email Verified:</strong> Yes
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-shield-check text-primary"></i>
+                            <strong>Status:</strong> Active
+                        </li>
+                        <li>
+                            <i class="bi bi-clock text-warning"></i>
+                            <strong>Last Login:</strong> Today
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="alert alert-info mt-3">
+                <small>
+                    <strong>Note:</strong> To update your personal information or change your password, use the buttons above. Contact your administrator for role or subject changes.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Change Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/changePassword" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="currentPassword" class="form-label">Current Password</label>
+                        <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="newPassword" name="newPassword" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Change Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: 1px solid #007bff;
+    }
+    .card-header {
+        border-bottom: 1px solid #007bff;
+    }
+    body.dark-theme .card {
+        background-color: #1e1e1e;
+        color: #e0e0e0;
+        border-color: #007bff;
+    }
+    body.dark-theme .card-body {
+        color: #e0e0e0;
+    }
+    body.dark-theme .text-muted {
+        color: #b0b0b0 !important;
+    }
+</style>
+
+{% endblock %}

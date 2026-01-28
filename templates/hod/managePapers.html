@@ -1,0 +1,149 @@
+{% extends 'poyambira.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4">Manage Question Papers</h2>
+    
+    <!-- Generate New Paper Section -->
+    <div class="card mb-4" style="border-left: 4px solid #007bff;">
+        <div class="card-body">
+            <h5 class="card-title">Generate Question Paper</h5>
+            <form method="GET" action="/generatePaper" class="row g-3">
+                <div class="col-md-4">
+                    <label for="stream" class="form-label">Stream</label>
+                    <select name="stream" id="stream" class="form-select" required>
+                        <option value="">Select Stream</option>
+                        {% for stream in streams %}
+                            <option value="{{ stream.streamID }}">{{ stream.streamName }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="subject" class="form-label">Subject</label>
+                    <select name="subject" id="subject" class="form-select" required>
+                        <option value="">Select Subject</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <a href="/generatePaper" class="btn btn-primary w-100">Go to Generator</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Papers Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card" style="border-left: 4px solid #28a745;">
+                <div class="card-body text-center">
+                    <h3 class="card-title">{{ total_papers }}</h3>
+                    <p class="text-muted">Total Papers Generated</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card" style="border-left: 4px solid #17a2b8;">
+                <div class="card-body text-center">
+                    <h3 class="card-title">{{ total_courses }}</h3>
+                    <p class="text-muted">Courses with Papers</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card" style="border-left: 4px solid #ffc107;">
+                <div class="card-body text-center">
+                    <h3 class="card-title">{{ avg_marks }}</h3>
+                    <p class="text-muted">Avg Total Marks</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card" style="border-left: 4px solid #dc3545;">
+                <div class="card-body text-center">
+                    <h3 class="card-title">{{ question_types }}</h3>
+                    <p class="text-muted">Question Types</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Papers List -->
+    <div class="card" style="border-left: 4px solid #007bff;">
+        <div class="card-body">
+            <h5 class="card-title">Recently Generated Papers</h5>
+            {% if papers %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Course</th>
+                                <th>Subject</th>
+                                <th>Type</th>
+                                <th>Total Marks</th>
+                                <th>Generated</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for paper in papers %}
+                                <tr>
+                                    <td>{{ paper.courseName }}</td>
+                                    <td>{{ paper.subjectName }}</td>
+                                    <td>
+                                        <span class="badge" 
+                                            style="background-color: {% if paper.type == 'INT' %}#28a745{% elif paper.type == 'EXT' %}#007bff{% else %}#ffc107{% endif %};">
+                                            {{ paper.type }}
+                                        </span>
+                                    </td>
+                                    <td>{{ paper.totalMarks }}</td>
+                                    <td><small class="text-muted">{{ paper.created_date }}</small></td>
+                                    <td>
+                                        <a href="/viewPaper/{{ paper.paperID }}" class="btn btn-sm btn-outline-primary">View</a>
+                                        <a href="/deletePaper/{{ paper.paperID }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this paper?')">Delete</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No papers found. <a href="/generatePaper">Generate one now!</a></p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    body.dark-theme .card {
+        background-color: #1e1e1e;
+        border-color: #333;
+    }
+    
+    body.dark-theme .table {
+        color: #e0e0e0;
+    }
+    
+    body.dark-theme .table-light {
+        background-color: #2a2a2a;
+        color: #e0e0e0;
+    }
+</style>
+
+<script>
+    // Populate subjects based on selected stream
+    document.getElementById('stream').addEventListener('change', function() {
+        const streamID = this.value;
+        if (streamID) {
+            fetch(`/getSubjects/${streamID}`)
+                .then(response => response.json())
+                .then(data => {
+                    const subjectSelect = document.getElementById('subject');
+                    subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+                    data.forEach(subject => {
+                        subjectSelect.innerHTML += `<option value="${subject.subjectID}">${subject.subjectName}</option>`;
+                    });
+                });
+        }
+    });
+</script>
+{% endblock %}

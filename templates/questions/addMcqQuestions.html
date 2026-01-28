@@ -18,7 +18,7 @@
 </style>
 
 <div>
-    <form action="/submitQuestion" method="POST" class="quesForm">
+    <form action="/submitQuestion" method="POST" class="quesForm" enctype="multipart/form-data">
         <label for="questionBank">questionBank:</label>
         <select id="questionBank" name="questionBank" required>
             <option value="">Select questionBank</option>
@@ -70,6 +70,11 @@
         <label for="marks">Allotted marks:</label><br>
         <input name="marks" id="marks" type="text" pattern="[0-9]+" required title="Only numbers allowed" placeholder="Enter marks">
         <br><br>
+
+        <label for="photo">Upload Question Image/Photo (optional):</label><br>
+        <input type="file" id="photo" name="photo" accept="image/*,.pdf" style="margin: 10px 0;">
+        <br><br>
+
         <button class="btn btn-primary" type="submit">Add Question</button>
         <br>
     </form>

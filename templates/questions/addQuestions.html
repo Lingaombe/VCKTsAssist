@@ -20,7 +20,7 @@
 </style>
 
 <div>
-    <form action="/submitQuestion" method="POST" class="quesForm">
+    <form action="/submitQuestion" method="POST" class="quesForm" enctype="multipart/form-data">
         <label for="questionBank">questionBank:</label>
         <select id="questionBank" name="questionBank" required>
             <option value="">Select questionBank</option>
@@ -33,7 +33,7 @@
         <label for="questionText">Enter question:</label><br>
         <p style="font-size: 12px; color: #666;">Use the formula button (Σ) for LaTeX math. Use subscript/superscript buttons for H<sub>2</sub>O, E=mc<sup>2</sup>, etc.</p>
         <div id="questionText" style="background-color: white; border: 1px solid #ccc;"></div>
-        <textarea id="questionText" name="questionText" style="display: none;" required></textarea>
+        <textarea id="questionText" name="questionText" style="display: none;"></textarea>
         <br><br>
         <label for="difficulty">Difficulty level A (easy), B, C:</label><br>
         <input class="input-control" name="difficulty" id="difficulty" type="text" pattern="[a-cA-C]+" required title="Only A-C allowed" placeholder="Enter difficulty">
@@ -43,6 +43,10 @@
         <br><br>
         <label for="marks">Allotted marks:</label><br>
         <input name="marks" id="marks" type="text" pattern="[0-9]+" required title="Only numbers allowed" placeholder="Enter marks">
+        <br><br>
+
+        <label for="photo">Upload Question Image/Photo (optional):</label><br>
+        <input type="file" id="photo" name="photo" accept="image/*,.pdf" style="margin: 10px 0;">
         <br><br>
 
         <button class="btn btn-primary" type="submit">Add Question</button>
@@ -76,11 +80,12 @@
       }
     });
     
-    // On form submit, copy editor content to hidden field
-    document.querySelector('.quesForm').addEventListener('submit', function() {
-      document.querySelector('textarea[name="questionText"]').value = quill.root.innerHTML;
-    });
-  });
+//     // On form submit, copy editor content to hidden field
+//     document.querySelector('.quesForm').addEventListener('submit', function() {
+//     //   document.querySelector('textarea[name="questionText"]').value = quill.root.innerHTML;
+//       document.querySelector("[name='questionText']").value = "default text";
+//     });
+});
 </script>
 
 {% endblock %}

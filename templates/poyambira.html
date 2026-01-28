@@ -70,24 +70,82 @@
                             Home
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/viewQuestionBanks">
-                            <i class="bi bi-bank"></i>
-                            Question Banks
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/editQuestions">
-                            <i class="bi bi-patch-question"></i>
-                            Manage Questions
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/generatePaper">
-                            <i class="bi bi-file-earmark"></i>
-                            Generate Paper
-                        </a>
-                    </li>
+                    {% if user_role == 'hod' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/editCourses">
+                                <i class="bi bi-book"></i>
+                                Manage Courses
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/editTeachers">
+                                <i class="bi bi-people"></i>
+                                Manage Teachers
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/editSubjects">
+                                <i class="bi bi-collection"></i>
+                                Manage Subjects
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/editBanks">
+                                <i class="bi bi-file-text"></i>
+                                Manage Banks
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/editPapers">
+                                <i class="bi bi-file-earmark-pdf"></i>
+                                Manage Papers
+                            </a>
+                        </li>
+                    {% elif user_role == 'examiner' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/reviewPapers">
+                                <i class="bi bi-file-earmark-check"></i>
+                                Review Papers
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/viewQuestionBanks">
+                                <i class="bi bi-collection"></i>
+                                View Banks
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/examinerAnalytics">
+                                <i class="bi bi-graph-up"></i>
+                                Analytics
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/editMyQuestions">
+                                <i class="bi bi-patch-question"></i>
+                                My Questions
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/uploadQuestions">
+                                <i class="bi bi-cloud-upload"></i>
+                                Bulk Upload
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/generatePaper">
+                                <i class="bi bi-file-earmark"></i>
+                                Generate Paper
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/teacherAnalytics">
+                                <i class="bi bi-graph-up"></i>
+                                My Analytics
+                            </a>
+                        </li>
+                    {% endif %}
                 </ul>
             </div>
             <div class="position-fixed bottom-0 pt-3">

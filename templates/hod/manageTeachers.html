@@ -1,0 +1,142 @@
+{% extends 'poyambira.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-8">
+            <h2 class="mb-4">Manage Teachers</h2>
+            
+            <!-- Filter Teachers by Subject -->
+            <div class="card mb-4" style="border-left: 4px solid #007bff;">
+                <div class="card-body">
+                    <h5 class="card-title">Filter Teachers</h5>
+                    <form method="GET" action="/editTeachers" class="row g-3">
+                        <div class="col-md-8">
+                            <label for="subjectFilter" class="form-label">Select Subject</label>
+                            <select name="subject" id="subjectFilter" class="form-select">
+                                <option value="">All Subjects</option>
+                                {% for subject in subjects %}
+                                    <option value="{{ subject.subjectID }}" {% if selected_subject == subject.subjectID|string %}selected{% endif %}>
+                                        {{ subject.subjectName }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">Filter</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Teachers List -->
+            <div class="card" style="border-left: 4px solid #007bff;">
+                <div class="card-body">
+                    <h5 class="card-title">Department Teachers</h5>
+                    {% if teachers %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Username</th>
+                                        <th>Email</th>
+                                        <th>Subject</th>
+                                        <th>Role</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for teacher in teachers %}
+                                        <tr>
+                                            <td>{{ teacher.username }}</td>
+                                            <td>{{ teacher.email }}</td>
+                                            <td>{{ teacher.subjectName }}</td>
+                                            <td>
+                                                <span class="badge bg-success">{{ teacher.urole | upper }}</span>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#viewModal"
+                                                    onclick="viewTeacher('{{ teacher.username }}', '{{ teacher.email }}', '{{ teacher.urole }}', '{{ teacher.subjectName }}')">
+                                                    View
+                                                </button>
+                                                <a href="/removeTeacher/{{ teacher.id }}" class="btn btn-sm btn-danger" onclick="return confirm('Remove this teacher from department?')">
+                                                    Remove
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No teachers found for the selected subject.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Sidebar -->
+        <div class="col-md-4">
+            <div class="card" style="border-left: 4px solid #28a745;">
+                <div class="card-body">
+                    <h5 class="card-title">Statistics</h5>
+                    <p class="mb-2"><strong>Total Teachers:</strong> {{ total_teachers }}</p>
+                    <p class="mb-2"><strong>Total Subjects:</strong> {{ total_subjects }}</p>
+                    <p class="mb-0"><strong>Active Users:</strong> {{ active_count }}</p>
+                </div>
+            </div>
+
+            <div class="card mt-3" style="border-left: 4px solid #17a2b8;">
+                <div class="card-body">
+                    <h6 class="card-title">Quick Actions</h6>
+                    <a href="/main" class="btn btn-sm btn-outline-primary w-100 mb-2">Dashboard</a>
+                    <a href="/editCourses" class="btn btn-sm btn-outline-primary w-100">Manage Courses</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Teacher Modal -->
+<div class="modal fade" id="viewModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Teacher Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Username:</strong> <span id="modalUsername"></span></p>
+                <p><strong>Email:</strong> <span id="modalEmail"></span></p>
+                <p><strong>Subject:</strong> <span id="modalSubject"></span></p>
+                <p><strong>Role:</strong> <span id="modalRole"></span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    body.dark-theme .card {
+        background-color: #1e1e1e;
+        border-color: #333;
+    }
+    
+    body.dark-theme .table {
+        color: #e0e0e0;
+    }
+    
+    body.dark-theme .table-light {
+        background-color: #2a2a2a;
+        color: #e0e0e0;
+    }
+</style>
+
+<script>
+    function viewTeacher(username, email, role, subject) {
+        document.getElementById('modalUsername').textContent = username;
+        document.getElementById('modalEmail').textContent = email;
+        document.getElementById('modalRole').textContent = role.toUpperCase();
+        document.getElementById('modalSubject').textContent = subject;
+    }
+</script>
+{% endblock %}

@@ -6,32 +6,10 @@
 
 {% block content %}
     <style>
-        .card {
-            border: 1px solid #007bff;
-        }
-        .card-header {
-            background-color: #007bff;
-            border-color: #007bff;
-            color: white;
-        }
-        
-        /* Dark theme support */
-        body.dark-theme .card {
-            background-color: #1e1e1e;
-            color: #e0e0e0;
-            border-color: #007bff;
-        }
-        
-        body.dark-theme .card-body {
-            color: #e0e0e0;
-        }
-        
-        body.dark-theme .card-title {
-            color: #e0e0e0;
-        }
-        
-        body.dark-theme .card-text {
-            color: #b0b0b0;
+        .card:hover  {
+            transition: transform 0.6s;
+            transform: scale(1.02);
+            cursor: pointer;
         }
     </style>
 
@@ -40,83 +18,222 @@
             <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="card-title">Welcome, {{ username }}!</h5>
-                    <p class="card-text">VCKTsAssist is your comprehensive platform for managing question banks, creating exams, and generating question papers.</p>
+                    {% if user_role == 'teacher' %}
+                        <p class="card-text">Manage your question banks, upload questions, and generate exam papers for your courses.</p>
+                    {% elif user_role == 'hod' %}
+                        <p class="card-text">Oversee department resources, manage courses and teachers, and ensure quality control across all question banks.</p>
+                    {% elif user_role == 'examiner' %}
+                        <p class="card-text">Review question papers, access cross-departmental resources, and analyze system-wide question bank statistics.</p>
+                    {% endif %}
                 </div>
             </div>
 
             <div class="row">
-                <div class="col-md-6 mb-4">
-                    <div class="card">
-                        <div class="card-body text-center">
-                            <i class="bi bi-bank" style="font-size: 2rem; color: #007bff;"></i>
-                            <h5 class="card-title mt-3">Question Banks</h5>
-                            <p class="card-text">Organize and manage your question banks by course and type.</p>
-                            <a href="/viewQuestionBanks" class="btn btn-primary btn-sm">View Banks</a>
+                <!-- TEACHER BOXES -->
+                {% if user_role == 'teacher' %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-cloud-upload" style="font-size: 2rem; color: #007bff;"></i>
+                                <h5 class="card-title mt-3">Add Questions</h5>
+                                <p class="card-text">Upload questions manually or in bulk with MCQ and descriptive support.</p>
+                                <div class="btn-group btn-group-sm w-100" role="group">
+                                    <a href="/addMcqQuestions" class="btn btn-primary">MCQ</a>
+                                    <a href="/addQuestions" class="btn btn-primary">Descriptive</a>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="col-md-6 mb-4">
-                    <div class="card">
-                        <div class="card-body text-center">
-                            <i class="bi bi-patch-question" style="font-size: 2rem; color: #28a745;"></i>
-                            <h5 class="card-title mt-3">Manage Questions</h5>
-                            <p class="card-text">Add, edit, and organize questions with support for formulas and subscripts.</p>
-                            <a href="/editQuestions" class="btn btn-success btn-sm">Manage</a>
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-patch-question" style="font-size: 2rem; color: #28a745;"></i>
+                                <h5 class="card-title mt-3">My Questions</h5>
+                                <p class="card-text">View and manage your question banks organized by course.</p>
+                                <a href="/editMyQuestions" class="btn btn-success btn-sm">Manage</a>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <div class="card">
-                        <div class="card-body text-center">
-                            <i class="bi bi-file-earmark" style="font-size: 2rem; color: #ffc107;"></i>
-                            <h5 class="card-title mt-3">Generate Papers</h5>
-                            <p class="card-text">Create question papers with automatic selection from your banks.</p>
-                            <a href="/generatePaper" class="btn btn-warning btn-sm">Generate</a>
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-file-earmark" style="font-size: 2rem; color: #ffc107;"></i>
+                                <h5 class="card-title mt-3">Generate Papers</h5>
+                                <p class="card-text">Create question papers with auto selection based on difficulty and marks.</p>
+                                <a href="/generatePaper" class="btn btn-warning btn-sm">Generate</a>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="col-md-6 mb-4">
-                    <div class="card">
-                        <div class="card-body text-center">
-                            <i class="bi bi-plus-circle" style="font-size: 2rem; color: #dc3545;"></i>
-                            <h5 class="card-title mt-3">Add New Bank</h5>
-                            <p class="card-text">Define the bank type (MCQ or Descriptive) and associate it with a specific course.</p>
-                            <a href="/addQuestionBank" class="btn btn-danger btn-sm">Create Bank</a>
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-folder-plus" style="font-size: 2rem; color: #dc3545;"></i>
+                                <h5 class="card-title mt-3">New Question Bank</h5>
+                                <p class="card-text">Create a new bank for organizing questions by course and topic.</p>
+                                <a href="/addQuestionBank" class="btn btn-danger btn-sm">Create</a>
+                            </div>
                         </div>
                     </div>
-                </div>
+                {% endif %}
+
+                <!-- HOD BOXES -->
+                {% if user_role == 'hod' %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-book" style="font-size: 2rem; color: #007bff;"></i>
+                                <h5 class="card-title mt-3">Manage Courses</h5>
+                                <p class="card-text">Add, edit, and configure courses with semester and marks distribution.</p>
+                                <a href="/editCourses" class="btn btn-primary btn-sm">Courses</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-people" style="font-size: 2rem; color: #28a745;"></i>
+                                <h5 class="card-title mt-3">Manage Teachers</h5>
+                                <p class="card-text">View and manage department teachers assigned to subjects.</p>
+                                <a href="/editTeachers" class="btn btn-success btn-sm">Teachers</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-collection" style="font-size: 2rem; color: #ffc107;"></i>
+                                <h5 class="card-title mt-3">Manage Subjects</h5>
+                                <p class="card-text">Create and configure subjects across different streams.</p>
+                                <a href="/editSubjects" class="btn btn-warning btn-sm">Subjects</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-file-text" style="font-size: 2rem; color: #dc3545;"></i>
+                                <h5 class="card-title mt-3">Manage Banks</h5>
+                                <p class="card-text">Review and delete question banks, manage overall quality.</p>
+                                <a href="/editBanks" class="btn btn-danger btn-sm">Banks</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- EXAMINER BOXES -->
+                {% if user_role == 'examiner' %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-file-earmark-check" style="font-size: 2rem; color: #007bff;"></i>
+                                <h5 class="card-title mt-3">Review Papers</h5>
+                                <p class="card-text">Access and review all question papers across departments.</p>
+                                <a href="/reviewPapers" class="btn btn-primary btn-sm">Review</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-file-earmark" style="font-size: 2rem; color: #28a745;"></i>
+                                <h5 class="card-title mt-3">Generate Papers</h5>
+                                <p class="card-text">Create new question papers from available question banks.</p>
+                                <a href="/generatePaper" class="btn btn-success btn-sm">Generate</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-collection" style="font-size: 2rem; color: #ffc107;"></i>
+                                <h5 class="card-title mt-3">View Banks</h5>
+                                <p class="card-text">Browse all question banks across the entire institution.</p>
+                                <a href="/viewQuestionBanks" class="btn btn-warning btn-sm">Banks</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-graph-up" style="font-size: 2rem; color: #dc3545;"></i>
+                                <h5 class="card-title mt-3">System Analytics</h5>
+                                <p class="card-text">View comprehensive statistics about questions and papers.</p>
+                                <a href="/examinerAnalytics" class="btn btn-danger btn-sm">Analytics</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
             </div>
         </div>
 
         <div class="col-md-4">
             <div class="card">
                 <div class="card-header">
-                    <h6 class="mb-0">Quick Stats</h6>
+                    <h6 class="mb-0">User Information</h6>
                 </div>
                 <div class="card-body">
-                    <p><strong>User Role:</strong> <span class="badge bg-info">{{ user_role }}</span></p>
+                    <p><strong>Username:</strong> {{ username }}</p>
+                    <p><strong>Role:</strong> 
+                        {% if user_role == 'teacher' %}
+                            <span class="badge bg-success">Teacher</span>
+                        {% elif user_role == 'hod' %}
+                            <span class="badge bg-danger">Head of Department</span>
+                        {% elif user_role == 'examiner' %}
+                            <span class="badge bg-info">Examiner</span>
+                        {% endif %}
+                    </p>
                     <p><strong>Subject:</strong> {{ subject }}</p>
-                    <hr>
-                    <p class="text-muted small">Use the sidebar navigation to access all features.</p>
                 </div>
             </div>
 
             <div class="card mt-3">
                 <div class="card-header">
-                    <h6 class="mb-0">Features</h6>
+                    <h6 class="mb-0">Permissions</h6>
                 </div>
                 <div class="card-body">
                     <ul class="list-unstyled small">
-                        <li><i class="bi bi-check-circle text-success"></i> Support for formulas and subscripts</li>
-                        <li><i class="bi bi-check-circle text-success"></i> MCQ and descriptive questions</li>
-                        <li><i class="bi bi-check-circle text-success"></i> Auto paper generation</li>
-                        <li><i class="bi bi-check-circle text-success"></i> Multiple difficulty levels</li>
-                        <li><i class="bi bi-check-circle text-success"></i> Search functionality</li>
+                        {% if user_role == 'teacher' %}
+                            <li><i class="bi bi-check-circle text-success"></i> Upload Questions</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Manage Your Banks</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Generate Papers</li>
+                            <li><i class="bi bi-check-circle text-success"></i> View Your Analytics</li>
+                        {% elif user_role == 'hod' %}
+                            <li><i class="bi bi-check-circle text-success"></i> Manage Courses</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Manage Teachers</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Manage Subjects</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Review Question Banks</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Delete Questions</li>
+                        {% elif user_role == 'examiner' %}
+                            <li><i class="bi bi-check-circle text-success"></i> Cross-Department Access</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Review All Papers</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Generate Papers</li>
+                            <li><i class="bi bi-check-circle text-success"></i> System Analytics</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Print Papers</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0">Quick Features</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled small">
+                        <li><i class="bi bi-check-circle text-info"></i> Rich Text Editor with Formulas</li>
+                        <li><i class="bi bi-check-circle text-info"></i> LaTeX/KaTeX Support</li>
+                        <li><i class="bi bi-check-circle text-info"></i> Photo Upload Support</li>
+                        <li><i class="bi bi-check-circle text-info"></i> Bulk Excel Import</li>
+                        <li><i class="bi bi-check-circle text-info"></i> Dark/Light Theme</li>
                     </ul>
                 </div>
             </div>

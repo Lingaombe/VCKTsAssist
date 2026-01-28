@@ -1,0 +1,188 @@
+{% extends 'poyambira.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4">Review & Analyze Question Papers</h2>
+    
+    <!-- Filter Section -->
+    <div class="card mb-4" style="border-left: 4px solid #007bff;">
+        <div class="card-body">
+            <h5 class="card-title">Filter Papers</h5>
+            <form method="GET" action="/reviewPapers" class="row g-3">
+                <div class="col-md-4">
+                    <label for="stream" class="form-label">Stream</label>
+                    <select name="stream" id="stream" class="form-select">
+                        <option value="">All Streams</option>
+                        {% for stream in streams %}
+                            <option value="{{ stream.streamID }}" {% if selected_stream == stream.streamID|string %}selected{% endif %}>
+                                {{ stream.streamName }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="subject" class="form-label">Subject</label>
+                    <select name="subject" id="subject" class="form-select">
+                        <option value="">All Subjects</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Papers Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card" style="border-left: 4px solid #28a745;">
+                <div class="card-body text-center">
+                    <h3>{{ total_papers }}</h3>
+                    <p class="text-muted small">Total Papers</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card" style="border-left: 4px solid #17a2b8;">
+                <div class="card-body text-center">
+                    <h3>{{ total_subjects }}</h3>
+                    <p class="text-muted small">Subjects Covered</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card" style="border-left: 4px solid #ffc107;">
+                <div class="card-body text-center">
+                    <h3>{{ total_courses }}</h3>
+                    <p class="text-muted small">Total Courses</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card" style="border-left: 4px solid #dc3545;">
+                <div class="card-body text-center">
+                    <h3>{{ avg_marks }}</h3>
+                    <p class="text-muted small">Avg Marks</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Papers List -->
+    <div class="card" style="border-left: 4px solid #007bff;">
+        <div class="card-body">
+            <h5 class="card-title">Question Papers</h5>
+            {% if papers %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Course</th>
+                                <th>Subject</th>
+                                <th>Stream</th>
+                                <th>Semester</th>
+                                <th>Type</th>
+                                <th>Marks</th>
+                                <th>Questions</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for paper in papers %}
+                                <tr>
+                                    <td><strong>{{ paper.courseName }}</strong></td>
+                                    <td>{{ paper.subjectName }}</td>
+                                    <td>{{ paper.streamName }}</td>
+                                    <td>{{ paper.semester }}</td>
+                                    <td>
+                                        <span class="badge" 
+                                            style="background-color: {% if paper.paperType == 'INT' %}#28a745{% elif paper.paperType == 'EXT' %}#007bff{% else %}#ffc107{% endif %};">
+                                            {{ paper.paperType }}
+                                        </span>
+                                    </td>
+                                    <td><strong>{{ paper.totalMarks }}</strong></td>
+                                    <td>
+                                        <span class="badge bg-info">{{ paper.questionCount }}</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#viewModal"
+                                            onclick="viewPaper('{{ paper.courseID }}', '{{ paper.courseName }}', '{{ paper.totalMarks }}', '{{ paper.paperType }}')">
+                                            View
+                                        </button>
+                                        <a href="/printPaper/{{ paper.courseID }}" class="btn btn-sm btn-success" target="_blank">
+                                            Print
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info" role="alert">
+                    No papers available for the selected filters. <a href="/generatePaper">Generate a paper</a> to get started.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- View Paper Modal -->
+<div class="modal fade modal-lg" id="viewModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Paper Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Course:</strong> <span id="modalCourse"></span></p>
+                <p><strong>Total Marks:</strong> <span id="modalMarks"></span></p>
+                <p><strong>Paper Type:</strong> <span id="modalType"></span></p>
+                <p class="text-muted"><small>Preview available via Print option. Use Print function to generate PDF.</small></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    body.dark-theme .card {
+        background-color: #1e1e1e;
+        border-color: #333;
+    }
+    
+    body.dark-theme .table {
+        color: #e0e0e0;
+    }
+    
+    body.dark-theme .table-light {
+        background-color: #2a2a2a;
+        color: #e0e0e0;
+    }
+</style>
+
+<script>
+    // Populate subjects based on selected stream
+    document.getElementById('stream').addEventListener('change', function() {
+        const streamID = this.value;
+        if (streamID) {
+            fetch(`/getSubjects/${streamID}`)
+                .then(response => response.json())
+                .then(data => {
+                    const subjectSelect = document.getElementById('subject');
+                    subjectSelect.innerHTML = '<option value="">All Subjects</option>';
+                    data.forEach(subject => {
+                        subjectSelect.innerHTML += `<option value="${subject.subjectID}">${subject.subjectName}</option>`;
+                    });
+                });
+        }
+    });
+
+    function viewPaper(courseID, courseName, marks, type) {
+        document.getElementById('modalCourse').textContent = courseName;
+        document.getElementById('modalMarks').textContent = marks;
+        document.getElementById('modalType').textContent = type;
+    }
+</script>
+{% endblock %}

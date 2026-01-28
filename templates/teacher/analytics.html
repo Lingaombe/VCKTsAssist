@@ -1,0 +1,225 @@
+{% extends 'poyambira.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4">My Question Analytics</h2>
+    
+    <!-- Overview Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card" style="border-left: 4px solid #28a745;">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Questions</h6>
+                    <h3 class="mb-0">{{ total_questions }}</h3>
+                    <small class="text-muted">Across all banks</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card" style="border-left: 4px solid #007bff;">
+                <div class="card-body">
+                    <h6 class="text-muted">Question Banks</h6>
+                    <h3 class="mb-0">{{ total_banks }}</h3>
+                    <small class="text-muted">Active banks</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card" style="border-left: 4px solid #ffc107;">
+                <div class="card-body">
+                    <h6 class="text-muted">Average Marks</h6>
+                    <h3 class="mb-0">{{ avg_marks }}</h3>
+                    <small class="text-muted">Per question</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card" style="border-left: 4px solid #17a2b8;">
+                <div class="card-body">
+                    <h6 class="text-muted">Courses</h6>
+                    <h3 class="mb-0">{{ courses_info | length }}</h3>
+                    <small class="text-muted">In your subject</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Question Type & Difficulty Distribution -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card" style="border-left: 4px solid #007bff;">
+                <div class="card-body">
+                    <h5 class="card-title">Questions by Type</h5>
+                    {% if question_types %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <tbody>
+                                    {% for type_data in question_types %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ type_data.type | upper }}</strong>
+                                            </td>
+                                            <td>
+                                                <div class="progress" style="height: 20px;">
+                                                    <div class="progress-bar" role="progressbar" style="width: {{ type_data.percentage }}%; background-color: #007bff;">
+                                                        {{ type_data.count }}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No questions yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card" style="border-left: 4px solid #28a745;">
+                <div class="card-body">
+                    <h5 class="card-title">Questions by Difficulty</h5>
+                    {% if difficulty_dist %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <tbody>
+                                    {% for diff_data in difficulty_dist %}
+                                        <tr>
+                                            <td>
+                                                <strong>
+                                                    {% if diff_data.difficulty == 'A' %}
+                                                        <span class="badge bg-success">EASY</span>
+                                                    {% elif diff_data.difficulty == 'B' %}
+                                                        <span class="badge bg-warning">MEDIUM</span>
+                                                    {% elif diff_data.difficulty == 'C' %}
+                                                        <span class="badge bg-danger">HARD</span>
+                                                    {% endif %}
+                                                </strong>
+                                            </td>
+                                            <td>
+                                                <div class="progress" style="height: 20px;">
+                                                    <div class="progress-bar" role="progressbar" 
+                                                        style="width: {{ diff_data.percentage }}%; background-color: {% if diff_data.difficulty == 'A' %}#28a745{% elif diff_data.difficulty == 'B' %}#ffc107{% else %}#dc3545{% endif %};">
+                                                        {{ diff_data.count }}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No questions yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Courses Coverage -->
+    <div class="card mb-4" style="border-left: 4px solid #007bff;">
+        <div class="card-body">
+            <h5 class="card-title">Coverage by Course</h5>
+            {% if courses_info %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Course Name</th>
+                                <th>Semester</th>
+                                <th>Banks</th>
+                                <th>Questions</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for course in courses_info %}
+                                <tr>
+                                    <td><strong>{{ course.courseName }}</strong></td>
+                                    <td>{{ course.courseSem }}</td>
+                                    <td><span class="badge bg-info">{{ course.bank_count }}</span></td>
+                                    <td><span class="badge bg-primary">{{ course.question_count }}</span></td>
+                                    <td>
+                                        {% if course.question_count > 0 %}
+                                            <span class="badge bg-success">Ready</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">Needs Questions</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No courses found in your subject.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Top Banks -->
+    <div class="card" style="border-left: 4px solid #007bff;">
+        <div class="card-body">
+            <h5 class="card-title">Top Question Banks</h5>
+            {% if top_banks %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Bank Name</th>
+                                <th>Course</th>
+                                <th>Type</th>
+                                <th>Questions</th>
+                                <th>Avg Marks</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bank in top_banks %}
+                                <tr>
+                                    <td>{{ bank.questionBankName | replace('_', ' ') | title }}</td>
+                                    <td>{{ bank.courseName }}</td>
+                                    <td>
+                                        <span class="badge" style="background-color: {% if bank.questionBankType == 'mcq' %}#17a2b8{% else %}#28a745{% endif %};">
+                                            {{ bank.questionBankType | upper }}
+                                        </span>
+                                    </td>
+                                    <td><strong>{{ bank.question_count }}</strong></td>
+                                    <td>{{ bank.avg_marks | round(1) }}</td>
+                                    <td>
+                                        <a href="/viewQuestions/{{ bank.questionBankID }}" class="btn btn-sm btn-outline-primary">
+                                            View
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No question banks yet. <a href="/addQuestionBank">Create one now!</a></p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    body.dark-theme .card {
+        background-color: #1e1e1e;
+        border-color: #333;
+    }
+    
+    body.dark-theme .table {
+        color: #e0e0e0;
+    }
+    
+    body.dark-theme .table-light {
+        background-color: #2a2a2a;
+        color: #e0e0e0;
+    }
+</style>
+{% endblock %}

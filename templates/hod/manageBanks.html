@@ -1,0 +1,79 @@
+{% extends 'poyambira.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4">Manage Question Banks</h2>
+    
+    <!-- Filter Section -->
+    <div class="card mb-4" style="border-left: 4px solid #007bff;">
+        <div class="card-body">
+            <h5 class="card-title">Filter Banks</h5>
+            <form method="GET" action="/editBanks" class="row g-3">
+                <div class="col-md-5">
+                    <label for="courseFilter" class="form-label">Course</label>
+                    <select name="course" id="courseFilter" class="form-select">
+                        <option value="">All Courses</option>
+                        {% for course in courses %}
+                            <option value="{{ course.courseID }}" {% if selected_course == course.courseID|string %}selected{% endif %}>
+                                {{ course.courseName }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label for="typeFilter" class="form-label">Question Type</label>
+                    <select name="type" id="typeFilter" class="form-select">
+                        <option value="">All Types</option>
+                        <option value="mcq" {% if selected_type == 'mcq' %}selected{% endif %}>MCQ</option>
+                        <option value="short" {% if selected_type == 'short' %}selected{% endif %}>Short Answer</option>
+                        <option value="long" {% if selected_type == 'long' %}selected{% endif %}>Long Answer</option>
+                        <option value="descriptive" {% if selected_type == 'descriptive' %}selected{% endif %}>Descriptive</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Question Banks List -->
+    <div class="row">
+        {% if banks %}
+            {% for bank in banks %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100" style="border-left: 4px solid #007bff;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title">{{ bank.questionBankName | replace('_', ' ') | title }}</h5>
+                                <span class="badge" style="background-color: {% if bank.questionBankType == 'mcq' %} #17a2b8 {% else %} #28a745 {% endif %};">
+                                    {{ bank.questionBankType | upper }}
+                                </span>
+                            </div>
+                            <p class="card-text text-muted mb-2">
+                                <strong>Course:</strong> {{ bank.courseName }}<br>
+                                <strong>Questions:</strong> <span class="badge bg-info">{{ bank.question_count }}</span>
+                            </p>
+                            <div class="btn-group w-100" role="group">
+                                <a href="/viewQuestions/{{ bank.questionBankID }}" class="btn btn-sm btn-outline-primary">View</a>
+                                <a href="/deleteBank/{{ bank.questionBankID }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this bank and all its questions?')">Delete</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <p class="text-muted text-center py-5">No question banks found for the selected filters.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    body.dark-theme .card {
+        background-color: #1e1e1e;
+        border-color: #333;
+    }
+</style>
+{% endblock %}

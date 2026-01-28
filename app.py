@@ -6,6 +6,9 @@ from dash import *
 import pandas as pd
 from dotenv import load_dotenv
 import os
+import time
+from werkzeug.utils import secure_filename
+from openpyxl import load_workbook
 
 load_dotenv() 
 
@@ -13,12 +16,24 @@ import mysql.connector
 conn = mysql.connector.connect(host="localhost", user="root", password="Lingaombe@2001", database="VCKTsAssist") 
 cursor = conn.cursor(dictionary=True)
 
+# File upload configuration
+UPLOAD_FOLDER = 'static/uploads'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf'}
+
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 if conn.is_connected():
     print("Successfully connected to the database")
 
 app = Flask(__name__)
 app.secret_key = "secretKey"
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -122,18 +137,61 @@ def main():
 
 @app.route('/teacherDashboard')
 @login_required
-def teacherDashboard():     
-    return render_template('teacher/dashboard.html', username=current_user.username)
+def teacherDashboard():
+    if current_user.role != 'teacher':
+        flash('Access denied. Teacher only.', 'danger')
+        return redirect('/main')
+    
+    # Get teacher's subject info
+    cursor.execute("SELECT subjectName FROM Subjects WHERE subjectID = %s", (current_user.subj,))
+    subject_result = cursor.fetchone()
+    subject_name = subject_result['subjectName'] if subject_result else "N/A"
+    
+    # Get teacher's question banks
+    cursor.execute("""
+        SELECT DISTINCT qb.* 
+        FROM questionBanks qb
+        JOIN Courses c ON qb.courseID = c.courseID
+        WHERE c.subjectID = %s
+    """, (current_user.subj,))
+    banks = cursor.fetchall()
+    total_banks = len(banks)
+    
+    # Get total questions
+    cursor.execute("""
+        SELECT COUNT(*) as count FROM questions q
+        JOIN questionBanks qb ON q.questionBankID = qb.questionBankID
+        JOIN Courses c ON qb.courseID = c.courseID
+        WHERE c.subjectID = %s
+    """, (current_user.subj,))
+    total_questions = cursor.fetchone()['count']
+    
+    # Get total courses in subject
+    cursor.execute("""
+        SELECT COUNT(*) as count FROM Courses WHERE subjectID = %s
+    """, (current_user.subj,))
+    total_courses = cursor.fetchone()['count']
+    
+    return render_template('teacher/dashboard.html', 
+                         username=current_user.username, 
+                         user_role=current_user.role,
+                         total_banks=total_banks,
+                         total_questions=total_questions,
+                         total_courses=total_courses,
+                         subject_name=subject_name)
 
 @app.route('/examinerDashboard')
 @login_required
 def examinerDashboard():
-    return render_template('examiner/dashboard.html', username=current_user.username)
+    return render_template('examiner/dashboard.html', username=current_user.username, user_role=current_user.role)
 
 @app.route('/hodDashboard')
 @login_required
 def hodDashboard():
-    return render_template('hod/dashboard.html', username=current_user.username)
+    if current_user.role != 'hod':
+        flash('Access denied. HOD only.', 'danger')
+        return redirect('/main')
+    return render_template('hod/dashboard.html', username=current_user.username, user_role=current_user.role)
 
 @app.route('/logout')
 @login_required
@@ -142,13 +200,42 @@ def logout():
     flash('You are now logged out', 'success')
     return redirect('/')
 
+@app.route('/profile')
+@login_required
+def profile():
+    # Get user info from database
+    cursor.execute("SELECT id, username, email, urole, subjectID FROM Users WHERE id = %s", (current_user.id,))
+    user_data = cursor.fetchone()
+    
+    # Get subject/department name
+    subject_name = "N/A"
+    if user_data['subjectID']:
+        cursor.execute("SELECT subjectName FROM Subjects WHERE subjectID = %s", (user_data['subjectID'],))
+        subject_result = cursor.fetchone()
+        if subject_result:
+            subject_name = subject_result['subjectName']
+    
+    # Format member since date (using current date as placeholder)
+    from datetime import datetime
+    member_since = datetime.now().strftime("%B %d, %Y")
+    
+    user_info = {
+        'username': user_data['username'],
+        'email': user_data['email'],
+        'role': user_data['urole'],
+        'subject_id': user_data['subjectID'],
+        'department': subject_name
+    }
+    
+    return render_template('profile.html', user=user_info, member_since=member_since, user_role=current_user.role, username=current_user.username)
+
 @app.route('/addQuestionBank')
 @login_required
 def addQuestionBank():
     cursor.execute("SELECT streamID, streamName, streamLevel FROM Streams")
     Streams = cursor.fetchall()
 
-    return render_template("questions/addQuestionBank.html", Streams=Streams)
+    return render_template("questions/addQuestionBank.html", Streams=Streams, user_role=current_user.role, username=current_user.username)
 
 @app.route("/getSubjects/<streamID>")
 def getSubjects(streamID):
@@ -160,7 +247,6 @@ def getSubjects(streamID):
     return jsonify(Subjects)
 
 @app.route("/getCourses/<subjectID>/<semester>")
-
 def getCourses(subjectID, semester):
     
     cursor.execute("SELECT courseID, courseName FROM Courses WHERE subjectID=%s and courseSem=%s", (subjectID, semester))
@@ -169,6 +255,7 @@ def getCourses(subjectID, semester):
     return jsonify(Courses)
 
 @app.route('/verifyAddQuestionBank')
+@login_required
 def verifyAddQuestionBank():
     questionBankName = request.args.get("bankName")
     bankQuestionType = request.args.get("bankType")
@@ -205,11 +292,12 @@ def verifyAddQuestionBank():
         return redirect('/addQuestionBank')
 
 @app.route('/editQuestions')
+@login_required
 def editQuestions():
     cursor.execute("select * from questionBanks;")
     QuestionBanks = cursor.fetchall()
 
-    return render_template('questions/editQuestions.html', QuestionBanks=QuestionBanks)
+    return render_template('questions/editQuestions.html', QuestionBanks=QuestionBanks, user_role=current_user.role, username=current_user.username)
     
 @app.route('/search')
 def search():
@@ -229,6 +317,7 @@ def search():
     return render_template('questions/editQuestions.html', QuestionBanks=QuestionBanks)
     
 @app.route('/viewQuestions/<int:questionBankID>')
+@login_required
 def viewQuestions(questionBankID):
     # Get the question bank details
     cursor.execute("SELECT * FROM questionBanks WHERE questionBankID=%s", (questionBankID,))
@@ -242,26 +331,156 @@ def viewQuestions(questionBankID):
     cursor.execute("SELECT * FROM questions WHERE questionBankID=%s", (questionBankID,))
     questions = cursor.fetchall()
     
-    return render_template('questions/viewQuestions.html', bank=bank, questions=questions)
+    return render_template('questions/viewQuestions.html', bank=bank, questions=questions, user_role=current_user.role, username=current_user.username)
 
 @app.route('/addMcqQuestions')
+@login_required
 def addMcqQuestions():
     cursor.execute("SELECT * FROM questionBanks WHERE questionBankType=%s;",("mcq",))
     QuestionBanks = cursor.fetchall()
-    return render_template('questions/addMcqQuestions.html', QuestionBanks=QuestionBanks)
+    return render_template('questions/addMcqQuestions.html', QuestionBanks=QuestionBanks, user_role=current_user.role, username=current_user.username)
 
 @app.route('/addQuestions')
+@login_required
 def addQuestions():
     cursor.execute("SELECT * FROM questionBanks WHERE questionBankType !=  %s;",("mcq",))
     QuestionBanks = cursor.fetchall()
-    return render_template('questions/addQuestions.html', QuestionBanks=QuestionBanks)
+    return render_template('questions/addQuestions.html', QuestionBanks=QuestionBanks, user_role=current_user.role, username=current_user.username)
+
+@app.route('/uploadQuestions', methods=['GET', 'POST'])
+@login_required
+def uploadQuestions():
+    upload_summary = None
+    
+    if request.method == 'POST':
+        questionBankID = request.form.get('questionBank')
+        
+        if not questionBankID:
+            flash('Please select a question bank', 'danger')
+            return redirect('/uploadQuestions')
+        
+        if 'excelFile' not in request.files:
+            flash('No file uploaded', 'danger')
+            return redirect('/uploadQuestions')
+        
+        file = request.files['excelFile']
+        
+        if file.filename == '':
+            flash('No file selected', 'danger')
+            return redirect('/uploadQuestions')
+        
+        if not file.filename.endswith(('.xlsx', '.xls')):
+            flash('Please upload an Excel file (.xlsx or .xls)', 'danger')
+            return redirect('/uploadQuestions')
+        
+        try:
+            # Get question bank type
+            cursor.execute("SELECT questionBankType FROM questionBanks WHERE questionBankID=%s", (questionBankID,))
+            result = cursor.fetchone()
+            if not result:
+                flash('Question bank not found', 'danger')
+                return redirect('/uploadQuestions')
+            
+            questionBankType = result['questionBankType']
+            
+            # Read Excel file
+            df = pd.read_excel(file)
+            
+            # Validate required columns
+            required_columns = ['questionBody', 'difficulty', 'unit', 'marks']
+            missing_columns = [col for col in required_columns if col not in df.columns]
+            
+            if missing_columns:
+                flash(f'Missing required columns: {", ".join(missing_columns)}', 'danger')
+                return redirect('/uploadQuestions')
+            
+            success_count = 0
+            failed_count = 0
+            errors = []
+            
+            # Process each row
+            for idx, row in df.iterrows():
+                try:
+                    questionBody = str(row['questionBody']).strip()
+                    difficulty = str(row['difficulty']).strip().upper()
+                    unit = str(int(row['unit'])) if pd.notna(row['unit']) else '1'
+                    marks = int(row['marks']) if pd.notna(row['marks']) else 1
+                    
+                    # Validate difficulty
+                    if difficulty not in ['A', 'B', 'C']:
+                        errors.append(f"Row {idx+2}: Invalid difficulty '{difficulty}' (must be A, B, or C)")
+                        failed_count += 1
+                        continue
+                    
+                    if questionBankType == "mcq":
+                        # Check for MCQ options
+                        if 'option1' not in df.columns or 'option2' not in df.columns or 'option3' not in df.columns or 'option4' not in df.columns:
+                            errors.append(f"Row {idx+2}: MCQ bank requires option1, option2, option3, option4 columns")
+                            failed_count += 1
+                            continue
+                        
+                        option1 = str(row['option1']).strip()
+                        option2 = str(row['option2']).strip()
+                        option3 = str(row['option3']).strip()
+                        option4 = str(row['option4']).strip()
+                        
+                        cursor.execute(
+                            "INSERT INTO questions (questionBankID, questionBody, questionGrade, questionUnit, questionOption1, questionOption2, questionOption3, questionOption4, questionMarks) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);",
+                            (questionBankID, questionBody, difficulty, unit, option1, option2, option3, option4, marks)
+                        )
+                    else:
+                        # Descriptive question
+                        cursor.execute(
+                            "INSERT INTO questions (questionBankID, questionBody, questionGrade, questionUnit, questionMarks) VALUES (%s, %s, %s, %s, %s);",
+                            (questionBankID, questionBody, difficulty, unit, marks)
+                        )
+                    
+                    conn.commit()
+                    success_count += 1
+                
+                except Exception as e:
+                    failed_count += 1
+                    errors.append(f"Row {idx+2}: {str(e)}")
+            
+            upload_summary = {
+                'total': len(df),
+                'success': success_count,
+                'failed': failed_count,
+                'errors': errors[:10]  # Show first 10 errors
+            }
+            
+            flash(f'Upload complete: {success_count} questions added, {failed_count} failed', 'info')
+        
+        except Exception as e:
+            flash(f'Error processing file: {str(e)}', 'danger')
+            return redirect('/uploadQuestions')
+    
+    cursor.execute("SELECT * FROM questionBanks")
+    QuestionBanks = cursor.fetchall()
+    
+    return render_template('questions/uploadQuestions.html', QuestionBanks=QuestionBanks, upload_summary=upload_summary, user_role=current_user.role, username=current_user.username)
 
 
 @app.route('/submitQuestion', methods=['POST'])
+@login_required
 def submitQuestion():
     questionBankID = request.form.get("questionBank")
     questionBody = request.form.get("questionText")
     questionMarks = int(request.form.get("marks"))
+    questionGrade = request.form.get("difficulty")
+    questionUnit = request.form.get("unit")
+    
+    # Handle file upload
+    photo_filename = None
+    if 'photo' in request.files:
+        file = request.files['photo']
+        if file and file.filename and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            # Add timestamp to make filename unique
+            filename = f"{int(time.time())}_{filename}"
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            photo_filename = filename
+    
     print(questionBankID, questionBody, questionMarks)
 
     cursor.execute("SELECT questionBankType FROM questionBanks WHERE questionBankID=%s", (questionBankID,))
@@ -273,14 +492,14 @@ def submitQuestion():
             option2 = request.form.get("option2")
             option3 = request.form.get("option3")
             option4 = request.form.get("option4")
-            cursor.execute("INSERT INTO questions (questionBankID, questionBody, questionOption1, questionOption2, questionOption3, questionOption4, questionMarks) VALUES (%s, %s, %s, %s, %s, %s, %s);", 
-                           (questionBankID, questionBody, option1, option2, option3, option4, questionMarks))
+            cursor.execute("INSERT INTO questions (questionBankID, questionBody, questionGrade, questionPhoto, questionUnit, questionOption1, questionOption2, questionOption3, questionOption4, questionMarks) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);", 
+                           (questionBankID, questionBody, questionGrade, photo_filename, questionUnit, option1, option2, option3, option4, questionMarks))
             conn.commit()
             flash("MCQ question added!")
             return redirect("/addMcqQuestions")
         else:
-            cursor.execute("INSERT INTO questions (questionBankID, questionBody, questionMarks) VALUES (%s, %s, %s);", 
-                           (questionBankID, questionBody, questionMarks))
+            cursor.execute("INSERT INTO questions (questionBankID, questionBody, questionGrade, questionPhoto, questionUnit, questionMarks) VALUES (%s, %s, %s, %s, %s, %s);", 
+                           (questionBankID, questionBody, questionGrade, photo_filename, questionUnit, questionMarks))
             conn.commit()
             flash("Question added!")
             return redirect("/addQuestions")
@@ -288,23 +507,23 @@ def submitQuestion():
         flash(f"Error adding question: {str(e)}")
         return redirect("/addQuestionBank")
     
-
-
 @app.route('/viewQuestionBanks')
+@login_required
 def viewQuestionBanks():
     cursor.execute("select * from questionBanks;")
     QuestionBanks = cursor.fetchall()
 
-    return render_template('questions/viewQuestionBanks.html', QuestionBanks=QuestionBanks)
+    return render_template('questions/viewQuestionBanks.html', QuestionBanks=QuestionBanks, user_role=current_user.role, username=current_user.username)
 
 
 @app.route("/generatePaper")
+@login_required
 def generatePaper():
 
     cursor.execute("SELECT streamID, streamName, streamLevel FROM Streams")
     Streams = cursor.fetchall()
     
-    return render_template("generatePaper.html", Streams=Streams)
+    return render_template("generatePaper.html", Streams=Streams, user_role=current_user.role, username=current_user.username)
 
 @app.route("/getBanks/<courseID>")
 def getBanks(courseID):
@@ -392,24 +611,735 @@ def paperGenerated():
             return render_template("paperGenerated.html", paperDetails=paperDetails, mcqQuestions=mcqQuestions, saqQuestions=saqQuestions, laqQuestions=laqQuestions)
 
 
-#dashboard
-@app.route('/dashboard')
-def dashboard():
-    return render_template('hod/dashboard.html')
+# ============= HOD ROUTES =============
 
-@app.route('/editCourses')
+@app.route('/editCourses', methods=['GET', 'POST'])
+@login_required
 def editCourses():
-    return render_template('hod/editCourses.html')
+    if current_user.role != 'hod':
+        flash('Unauthorized access', 'danger')
+        return redirect('/main')
+    
+    # Get all subjects for dropdown
+    cursor.execute("SELECT * FROM Subjects")
+    subjects = cursor.fetchall()
+    
+    # Get all courses with subject names
+    cursor.execute("""
+        SELECT c.*, s.subjectName 
+        FROM Courses c 
+        JOIN Subjects s ON c.subjectID = s.subjectID
+        ORDER BY c.courseName
+    """)
+    courses = cursor.fetchall()
+    
+    return render_template('hod/manageCourses.html', 
+                         subjects=subjects, 
+                         courses=courses,
+                         total_courses=len(courses),
+                         total_subjects=len(subjects),
+                         department=current_user.subj,
+                         username=current_user.username,
+                         user_role=current_user.role)
 
-@app.route('/handleCourses', methods=['POST'])
-def handle():
-    x = handleCourses()
-    return render_template('index.html')
+@app.route('/addCourse', methods=['POST'])
+@login_required
+def addCourse():
+    if current_user.role != 'hod':
+        flash('Unauthorized access', 'danger')
+        return redirect('/main')
+    
+    try:
+        subject_id = request.form.get('subject')
+        course_name = request.form.get('courseName')
+        semester = request.form.get('semester')
+        marks_internal = request.form.get('marksInternal')
+        marks_external = request.form.get('marksExternal')
+        marks_practical = request.form.get('marksPractical')
+        
+        cursor.execute("""
+            INSERT INTO Courses (subjectID, courseName, courseSem, marksInternal, marksExternal, marksPractical)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (subject_id, course_name, semester, marks_internal, marks_external, marks_practical))
+        conn.commit()
+        flash(f'Course "{course_name}" added successfully!', 'success')
+    except Exception as e:
+        flash(f'Error adding course: {str(e)}', 'danger')
+    
+    return redirect('/editCourses')
+
+@app.route('/editCourse', methods=['POST'])
+@login_required
+def editCourseRoute():
+    if current_user.role != 'hod':
+        flash('Unauthorized access', 'danger')
+        return redirect('/main')
+    
+    try:
+        course_id = request.form.get('courseID')
+        course_name = request.form.get('courseName')
+        subject_id = request.form.get('subject')
+        semester = request.form.get('semester')
+        marks_internal = request.form.get('marksInternal')
+        marks_external = request.form.get('marksExternal')
+        marks_practical = request.form.get('marksPractical')
+        
+        cursor.execute("""
+            UPDATE Courses 
+            SET subjectID=%s, courseName=%s, courseSem=%s, marksInternal=%s, marksExternal=%s, marksPractical=%s
+            WHERE courseID=%s
+        """, (subject_id, course_name, semester, marks_internal, marks_external, marks_practical, course_id))
+        conn.commit()
+        flash(f'Course updated successfully!', 'success')
+    except Exception as e:
+        flash(f'Error updating course: {str(e)}', 'danger')
+    
+    return redirect('/editCourses')
+
+@app.route('/deleteCourse/<int:course_id>', methods=['GET'])
+@login_required
+def deleteCourse(course_id):
+    if current_user.role != 'hod':
+        flash('Unauthorized access', 'danger')
+        return redirect('/main')
+    
+    try:
+        cursor.execute("DELETE FROM Courses WHERE courseID=%s", (course_id,))
+        conn.commit()
+        flash('Course deleted successfully!', 'success')
+    except Exception as e:
+        flash(f'Error deleting course: {str(e)}', 'danger')
+    
+    return redirect('/editCourses')
+
+# ===== TEACHERS MANAGEMENT =====
+
+@app.route('/editTeachers', methods=['GET'])
+@login_required
+def editTeachers():
+    if current_user.role != 'hod':
+        flash('Unauthorized access', 'danger')
+        return redirect('/main')
+    
+    selected_subject = request.args.get('subject', '')
+    
+    # Get all subjects
+    cursor.execute("SELECT * FROM Subjects ORDER BY subjectName")
+    subjects = cursor.fetchall()
+    
+    # Get teachers based on filter
+    if selected_subject:
+        cursor.execute("""
+            SELECT u.*, s.subjectName 
+            FROM Users u 
+            LEFT JOIN Subjects s ON u.subjectID = s.subjectID
+            WHERE u.urole='teacher' AND u.subjectID=%s
+            ORDER BY u.username
+        """, (selected_subject,))
+    else:
+        cursor.execute("""
+            SELECT u.*, s.subjectName 
+            FROM Users u 
+            LEFT JOIN Subjects s ON u.subjectID = s.subjectID
+            WHERE u.urole='teacher'
+            ORDER BY u.username
+        """)
+    
+    teachers = cursor.fetchall()
+    
+    return render_template('hod/manageTeachers.html',
+                         teachers=teachers,
+                         subjects=subjects,
+                         selected_subject=selected_subject,
+                         total_teachers=len(teachers),
+                         total_subjects=len(subjects),
+                         active_count=len(teachers),
+                         username=current_user.username,
+                         user_role=current_user.role)
+
+@app.route('/removeTeacher/<int:user_id>', methods=['GET'])
+@login_required
+def removeTeacher(user_id):
+    if current_user.role != 'hod':
+        flash('Unauthorized access', 'danger')
+        return redirect('/main')
+    
+    try:
+        cursor.execute("DELETE FROM Users WHERE id=%s AND urole='teacher'", (user_id,))
+        conn.commit()
+        flash('Teacher removed from department!', 'success')
+    except Exception as e:
+        flash(f'Error removing teacher: {str(e)}', 'danger')
+    
+    return redirect('/editTeachers')
+
+# ===== SUBJECTS MANAGEMENT =====
+
+@app.route('/editSubjects', methods=['GET', 'POST'])
+@login_required
+def editSubjects():
+    if current_user.role != 'hod':
+        flash('Unauthorized access', 'danger')
+        return redirect('/main')
+    
+    # Get all streams
+    cursor.execute("SELECT * FROM Streams ORDER BY streamName")
+    streams = cursor.fetchall()
+    
+    # Get all subjects with course counts
+    cursor.execute("""
+        SELECT s.*, st.streamName, COUNT(c.courseID) as course_count
+        FROM Subjects s
+        JOIN Streams st ON s.streamID = st.streamID
+        LEFT JOIN Courses c ON s.subjectID = c.subjectID
+        GROUP BY s.subjectID
+        ORDER BY s.subjectName
+    """)
+    subjects = cursor.fetchall()
+    
+    return render_template('hod/manageSubjects.html',
+                         subjects=subjects,
+                         streams=streams,
+                         total_subjects=len(subjects),
+                         total_streams=len(streams),
+                         total_courses=sum([s['course_count'] for s in subjects]),
+                         username=current_user.username,
+                         user_role=current_user.role)
+
+@app.route('/addSubject', methods=['POST'])
+@login_required
+def addSubject():
+    if current_user.role != 'hod':
+        flash('Unauthorized access', 'danger')
+        return redirect('/main')
+    
+    try:
+        subject_name = request.form.get('subjectName')
+        stream_id = request.form.get('stream')
+        
+        cursor.execute("""
+            INSERT INTO Subjects (subjectName, streamID)
+            VALUES (%s, %s)
+        """, (subject_name, stream_id))
+        conn.commit()
+        flash(f'Subject "{subject_name}" added successfully!', 'success')
+    except Exception as e:
+        flash(f'Error adding subject: {str(e)}', 'danger')
+    
+    return redirect('/editSubjects')
+
+@app.route('/editSubject', methods=['POST'])
+@login_required
+def editSubjectRoute():
+    if current_user.role != 'hod':
+        flash('Unauthorized access', 'danger')
+        return redirect('/main')
+    
+    try:
+        subject_id = request.form.get('subjectID')
+        subject_name = request.form.get('subjectName')
+        stream_id = request.form.get('stream')
+        
+        cursor.execute("""
+            UPDATE Subjects
+            SET subjectName=%s, streamID=%s
+            WHERE subjectID=%s
+        """, (subject_name, stream_id, subject_id))
+        conn.commit()
+        flash('Subject updated successfully!', 'success')
+    except Exception as e:
+        flash(f'Error updating subject: {str(e)}', 'danger')
+    
+    return redirect('/editSubjects')
+
+@app.route('/deleteSubject/<int:subject_id>', methods=['GET'])
+@login_required
+def deleteSubject(subject_id):
+    if current_user.role != 'hod':
+        flash('Unauthorized access', 'danger')
+        return redirect('/main')
+    
+    try:
+        cursor.execute("DELETE FROM Subjects WHERE subjectID=%s", (subject_id,))
+        conn.commit()
+        flash('Subject deleted successfully!', 'success')
+    except Exception as e:
+        flash(f'Error deleting subject: {str(e)}', 'danger')
+    
+    return redirect('/editSubjects')
+
+# ===== QUESTION BANKS MANAGEMENT =====
+
+@app.route('/editBanks', methods=['GET'])
+@login_required
+def editBanks():
+    if current_user.role != 'hod':
+        flash('Unauthorized access', 'danger')
+        return redirect('/main')
+    
+    selected_course = request.args.get('course', '')
+    selected_type = request.args.get('type', '')
+    
+    # Get all courses
+    cursor.execute("SELECT * FROM Courses ORDER BY courseName")
+    courses = cursor.fetchall()
+    
+    # Get question banks with course names and question counts
+    query = """
+        SELECT qb.*, c.courseName, COUNT(q.questionID) as question_count
+        FROM questionBanks qb
+        JOIN Courses c ON qb.courseID = c.courseID
+        LEFT JOIN questions q ON qb.questionBankID = q.questionBankID
+    """
+    params = []
+    
+    if selected_course or selected_type:
+        query += " WHERE "
+        conditions = []
+        if selected_course:
+            conditions.append("qb.courseID=%s")
+            params.append(selected_course)
+        if selected_type:
+            conditions.append("qb.questionBankType=%s")
+            params.append(selected_type)
+        query += " AND ".join(conditions)
+    
+    query += " GROUP BY qb.questionBankID ORDER BY c.courseName"
+    
+    cursor.execute(query, params)
+    banks = cursor.fetchall()
+    
+    return render_template('hod/manageBanks.html',
+                         banks=banks,
+                         courses=courses,
+                         selected_course=selected_course,
+                         selected_type=selected_type,
+                         username=current_user.username,
+                         user_role=current_user.role)
+
+@app.route('/deleteBank/<int:bank_id>', methods=['GET'])
+@login_required
+def deleteBank(bank_id):
+    if current_user.role != 'hod':
+        flash('Unauthorized access', 'danger')
+        return redirect('/main')
+    
+    try:
+        # Delete all questions in the bank first
+        cursor.execute("DELETE FROM questions WHERE questionBankID=%s", (bank_id,))
+        # Delete the bank
+        cursor.execute("DELETE FROM questionBanks WHERE questionBankID=%s", (bank_id,))
+        conn.commit()
+        flash('Question bank deleted successfully!', 'success')
+    except Exception as e:
+        flash(f'Error deleting bank: {str(e)}', 'danger')
+    
+    return redirect('/editBanks')
+
+@app.route('/deleteQuestion/<int:question_id>', methods=['GET'])
+@login_required
+def deleteQuestion(question_id):
+    if current_user.role != 'hod':
+        flash('Unauthorized access', 'danger')
+        return redirect('/main')
+    
+    # Get the question bank ID first
+    cursor.execute("SELECT questionBankID FROM questions WHERE questionID=%s", (question_id,))
+    result = cursor.fetchone()
+    bank_id = result['questionBankID'] if result else None
+    
+    try:
+        cursor.execute("DELETE FROM questions WHERE questionID=%s", (question_id,))
+        conn.commit()
+        flash('Question deleted successfully!', 'success')
+    except Exception as e:
+        flash(f'Error deleting question: {str(e)}', 'danger')
+    
+    return redirect(f'/viewQuestions/{bank_id}') if bank_id else redirect('/editQuestions')
+
+# ===== PAPERS MANAGEMENT =====
+
+@app.route('/editPapers', methods=['GET'])
+@login_required
+def editPapers():
+    if current_user.role != 'hod':
+        flash('Unauthorized access', 'danger')
+        return redirect('/main')
+    
+    # Get streams
+    cursor.execute("SELECT * FROM Streams ORDER BY streamName")
+    streams = cursor.fetchall()
+    
+    # Placeholder stats (you can implement actual paper tracking later)
+    total_papers = 0
+    total_courses = 0
+    avg_marks = 0
+    question_types = 3
+    papers = []
+    
+    return render_template('hod/managePapers.html',
+                         streams=streams,
+                         papers=papers,
+                         total_papers=total_papers,
+                         total_courses=total_courses,
+                         avg_marks=avg_marks,
+                         question_types=question_types,
+                         username=current_user.username,
+                         user_role=current_user.role)
+
+# ============= EXAMINER ROUTES =============
+
+@app.route('/examinerDashboard')
+@login_required
+def examinerDashboardRoute():
+    if current_user.role != 'examiner':
+        flash('Access denied. Examiner only.', 'danger')
+        return redirect('/main')
+    
+    # Get statistics for dashboard
+    cursor.execute("SELECT COUNT(*) as count FROM questions")
+    total_questions = cursor.fetchone()['count']
+    
+    cursor.execute("SELECT COUNT(*) as count FROM questionBanks")
+    total_banks = cursor.fetchone()['count']
+    
+    cursor.execute("SELECT COUNT(*) as count FROM Courses")
+    total_courses = cursor.fetchone()['count']
+    
+    cursor.execute("SELECT COUNT(*) as count FROM Subjects")
+    total_subjects = cursor.fetchone()['count']
+    
+    return render_template('examiner/dashboard.html',
+                         total_papers=total_courses,
+                         total_banks=total_banks,
+                         total_questions=total_questions,
+                         total_subjects=total_subjects,
+                         user_role=current_user.role,
+                         username=current_user.username)
+
+@app.route('/reviewPapers', methods=['GET'])
+@login_required
+def reviewPapers():
+    if current_user.role != 'examiner':
+        flash('Access denied. Examiner only.', 'danger')
+        return redirect('/main')
+    
+    selected_stream = request.args.get('stream', '')
+    selected_subject = request.args.get('subject', '')
+    
+    # Get all streams
+    cursor.execute("SELECT * FROM Streams ORDER BY streamName")
+    streams = cursor.fetchall()
+    
+    # Build query for papers
+    query = """
+        SELECT DISTINCT 
+            c.courseID, c.courseName, c.courseSem, c.marksInternal, c.marksExternal, c.marksPractical,
+            s.subjectID, s.subjectName,
+            st.streamID, st.streamName,
+            COUNT(q.questionID) as questionCount,
+            'INT' as paperType
+        FROM Courses c
+        JOIN Subjects s ON c.subjectID = s.subjectID
+        JOIN Streams st ON s.streamID = st.streamID
+        LEFT JOIN questionBanks qb ON c.courseID = qb.courseID
+        LEFT JOIN questions q ON qb.questionBankID = q.questionBankID
+    """
+    
+    params = []
+    where_clauses = []
+    
+    if selected_stream:
+        where_clauses.append("st.streamID = %s")
+        params.append(selected_stream)
+    
+    if selected_subject:
+        where_clauses.append("s.subjectID = %s")
+        params.append(selected_subject)
+    
+    if where_clauses:
+        query += " WHERE " + " AND ".join(where_clauses)
+    
+    query += " GROUP BY c.courseID ORDER BY st.streamName, s.subjectName, c.courseName"
+    
+    cursor.execute(query, params)
+    papers = cursor.fetchall()
+    
+    # Get statistics
+    total_papers = len(papers)
+    total_subjects = len(set([p['subjectID'] for p in papers]))
+    total_courses = len(papers)
+    avg_marks = sum([p['marksExternal'] for p in papers]) / len(papers) if papers else 0
+    
+    return render_template('examiner/reviewPapers.html',
+                         papers=papers,
+                         streams=streams,
+                         selected_stream=selected_stream,
+                         selected_subject=selected_subject,
+                         total_papers=total_papers,
+                         total_subjects=total_subjects,
+                         total_courses=total_courses,
+                         avg_marks=int(avg_marks),
+                         user_role=current_user.role,
+                         username=current_user.username)
+
+@app.route('/examinerAnalytics', methods=['GET'])
+@login_required
+def examinerAnalytics():
+    if current_user.role != 'examiner':
+        flash('Access denied. Examiner only.', 'danger')
+        return redirect('/main')
+    
+    # Total questions
+    cursor.execute("SELECT COUNT(*) as count FROM questions")
+    total_questions = cursor.fetchone()['count']
+    
+    # Total banks
+    cursor.execute("SELECT COUNT(*) as count FROM questionBanks")
+    total_banks = cursor.fetchone()['count']
+    
+    # Total courses
+    cursor.execute("SELECT COUNT(*) as count FROM Courses")
+    total_courses = cursor.fetchone()['count']
+    
+    # Total subjects
+    cursor.execute("SELECT COUNT(*) as count FROM Subjects")
+    total_subjects = cursor.fetchone()['count']
+    
+    # Question types distribution
+    cursor.execute("""
+        SELECT questionBankType as type, COUNT(*) as count
+        FROM questions
+        GROUP BY questionBankType
+    """)
+    type_results = cursor.fetchall()
+    total_for_type = sum([r['count'] for r in type_results]) if type_results else 1
+    question_types = [
+        {'type': r['type'], 'count': r['count'], 'percentage': (r['count'] / total_for_type * 100)}
+        for r in type_results
+    ]
+    
+    # Question difficulty distribution
+    cursor.execute("""
+        SELECT questionGrade as difficulty, COUNT(*) as count
+        FROM questions
+        GROUP BY questionGrade
+    """)
+    diff_results = cursor.fetchall()
+    total_for_diff = sum([r['count'] for r in diff_results]) if diff_results else 1
+    difficulty_dist = [
+        {'difficulty': r['difficulty'], 'count': r['count'], 'percentage': (r['count'] / total_for_diff * 100)}
+        for r in diff_results
+    ]
+    
+    # Top banks
+    cursor.execute("""
+        SELECT qb.*, c.courseName, COUNT(q.questionID) as question_count, AVG(q.questionMarks) as avg_marks
+        FROM questionBanks qb
+        JOIN Courses c ON qb.courseID = c.courseID
+        LEFT JOIN questions q ON qb.questionBankID = q.questionBankID
+        GROUP BY qb.questionBankID
+        ORDER BY question_count DESC
+        LIMIT 10
+    """)
+    top_banks = cursor.fetchall()
+    
+    # Subject coverage
+    cursor.execute("""
+        SELECT s.subjectID, s.subjectName, st.streamName, st.streamID,
+               COUNT(DISTINCT qb.questionBankID) as bank_count,
+               COUNT(q.questionID) as question_count,
+               ROUND(AVG(CASE WHEN q.questionMarks IS NOT NULL THEN 1 ELSE 0 END) * 100) as quality_score
+        FROM Subjects s
+        JOIN Streams st ON s.streamID = st.streamID
+        LEFT JOIN Courses c ON s.subjectID = c.subjectID
+        LEFT JOIN questionBanks qb ON c.courseID = qb.courseID
+        LEFT JOIN questions q ON qb.questionBankID = q.questionBankID
+        GROUP BY s.subjectID
+        ORDER BY question_count DESC
+    """)
+    subject_coverage = cursor.fetchall()
+    
+    return render_template('examiner/analytics.html',
+                         total_questions=total_questions,
+                         total_banks=total_banks,
+                         total_courses=total_courses,
+                         total_subjects=total_subjects,
+                         question_types=question_types,
+                         difficulty_dist=difficulty_dist,
+                         top_banks=top_banks,
+                         subject_coverage=subject_coverage,
+                         user_role=current_user.role,
+                         username=current_user.username)
+
+@app.route('/printPaper/<int:course_id>')
+@login_required
+def printPaper(course_id):
+    if current_user.role != 'examiner':
+        flash('Access denied. Examiner only.', 'danger')
+        return redirect('/main')
+    
+    # Get course details
+    cursor.execute("""
+        SELECT c.*, s.subjectName, st.streamName
+        FROM Courses c
+        JOIN Subjects s ON c.subjectID = s.subjectID
+        JOIN Streams st ON s.streamID = st.streamID
+        WHERE c.courseID = %s
+    """, (course_id,))
+    course = cursor.fetchone()
+    
+    if not course:
+        flash('Course not found', 'danger')
+        return redirect('/reviewPapers')
+    
+    # Get banks for this course
+    cursor.execute("SELECT * FROM questionBanks WHERE courseID = %s", (course_id,))
+    banks = cursor.fetchall()
+    
+    # Get all questions from all banks
+    questions = []
+    for bank in banks:
+        cursor.execute("SELECT * FROM questions WHERE questionBankID = %s", (bank['questionBankID'],))
+        bank_questions = cursor.fetchall()
+        questions.extend(bank_questions)
+    
+    return render_template('paperGenerated.html',
+                         course=course,
+                         banks=banks,
+                         questions=questions,
+                         user_role=current_user.role,
+                         username=current_user.username)
+
+# ============= TEACHER ROUTES =============
+
+@app.route('/teacherAnalytics', methods=['GET'])
+@login_required
+def teacherAnalytics():
+    if current_user.role != 'teacher':
+        flash('Access denied. Teacher only.', 'danger')
+        return redirect('/main')
+    
+    # Get teacher's questions
+    cursor.execute("""
+        SELECT COUNT(*) as count FROM questions q
+        JOIN questionBanks qb ON q.questionBankID = qb.questionBankID
+        JOIN Courses c ON qb.courseID = c.courseID
+        WHERE c.subjectID = %s
+    """, (current_user.subj,))
+    total_questions = cursor.fetchone()['count']
+    
+    # Get banks
+    cursor.execute("""
+        SELECT COUNT(*) as count FROM questionBanks qb
+        JOIN Courses c ON qb.courseID = c.courseID
+        WHERE c.subjectID = %s
+    """, (current_user.subj,))
+    total_banks = cursor.fetchone()['count']
+    
+    # Question type distribution
+    cursor.execute("""
+        SELECT questionBankType as type, COUNT(*) as count
+        FROM questions q
+        JOIN questionBanks qb ON q.questionBankID = qb.questionBankID
+        JOIN Courses c ON qb.courseID = c.courseID
+        WHERE c.subjectID = %s
+        GROUP BY questionBankType
+    """, (current_user.subj,))
+    type_results = cursor.fetchall()
+    total_for_type = sum([r['count'] for r in type_results]) if type_results else 1
+    question_types = [
+        {'type': r['type'], 'count': r['count'], 'percentage': (r['count'] / total_for_type * 100)}
+        for r in type_results
+    ]
+    
+    # Difficulty distribution
+    cursor.execute("""
+        SELECT questionGrade as difficulty, COUNT(*) as count
+        FROM questions q
+        JOIN questionBanks qb ON q.questionBankID = qb.questionBankID
+        JOIN Courses c ON qb.courseID = c.courseID
+        WHERE c.subjectID = %s
+        GROUP BY questionGrade
+    """, (current_user.subj,))
+    diff_results = cursor.fetchall()
+    total_for_diff = sum([r['count'] for r in diff_results]) if diff_results else 1
+    difficulty_dist = [
+        {'difficulty': r['difficulty'], 'count': r['count'], 'percentage': (r['count'] / total_for_diff * 100)}
+        for r in diff_results
+    ]
+    
+    # Marks distribution
+    cursor.execute("""
+        SELECT SUM(questionMarks) as total_marks, COUNT(*) as question_count
+        FROM questions q
+        JOIN questionBanks qb ON q.questionBankID = qb.questionBankID
+        JOIN Courses c ON qb.courseID = c.courseID
+        WHERE c.subjectID = %s
+    """, (current_user.subj,))
+    marks_result = cursor.fetchone()
+    avg_marks = (marks_result['total_marks'] / marks_result['question_count'] if marks_result['question_count'] else 0) if marks_result else 0
+    
+    # Top banks
+    cursor.execute("""
+        SELECT qb.*, c.courseName, COUNT(q.questionID) as question_count, AVG(q.questionMarks) as avg_marks
+        FROM questionBanks qb
+        JOIN Courses c ON qb.courseID = c.courseID
+        LEFT JOIN questions q ON qb.questionBankID = q.questionBankID
+        WHERE c.subjectID = %s
+        GROUP BY qb.questionBankID
+        ORDER BY question_count DESC
+        LIMIT 10
+    """, (current_user.subj,))
+    top_banks = cursor.fetchall()
+    
+    # Courses info
+    cursor.execute("""
+        SELECT c.*, COUNT(DISTINCT qb.questionBankID) as bank_count, COUNT(q.questionID) as question_count
+        FROM Courses c
+        LEFT JOIN questionBanks qb ON c.courseID = qb.courseID
+        LEFT JOIN questions q ON qb.questionBankID = q.questionBankID
+        WHERE c.subjectID = %s
+        GROUP BY c.courseID
+        ORDER BY c.courseName
+    """, (current_user.subj,))
+    courses_info = cursor.fetchall()
+    
+    return render_template('teacher/analytics.html',
+                         total_questions=total_questions,
+                         total_banks=total_banks,
+                         avg_marks=round(avg_marks, 1),
+                         question_types=question_types,
+                         difficulty_dist=difficulty_dist,
+                         top_banks=top_banks,
+                         courses_info=courses_info,
+                         user_role=current_user.role,
+                         username=current_user.username)
+
+@app.route('/editMyQuestions', methods=['GET'])
+@login_required
+def editMyQuestions():
+    if current_user.role != 'teacher':
+        flash('Access denied. Teacher only.', 'danger')
+        return redirect('/main')
+    
+    # Get only teacher's question banks (from their subject)
+    cursor.execute("""
+        SELECT qb.* FROM questionBanks qb
+        JOIN Courses c ON qb.courseID = c.courseID
+        WHERE c.subjectID = %s
+        ORDER BY qb.questionBankName
+    """, (current_user.subj,))
+    QuestionBanks = cursor.fetchall()
+    
+    return render_template('questions/editQuestions.html', 
+                         QuestionBanks=QuestionBanks, 
+                         user_role=current_user.role, 
+                         username=current_user.username)
 
 @app.errorhandler(404)
 def pageNotFound(error):
     return render_template('pageNotFound.html'), 404
-
 
 if __name__ == '__main__':
     app.run(debug=True)
