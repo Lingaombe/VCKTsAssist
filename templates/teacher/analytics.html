@@ -144,7 +144,7 @@
                                     <td><span class="badge bg-info">{{ course.bank_count }}</span></td>
                                     <td><span class="badge bg-primary">{{ course.question_count }}</span></td>
                                     <td>
-                                        {% if course.question_count > 0 %}
+                                        {% if course.question_count > 10 %}
                                             <span class="badge bg-success">Ready</span>
                                         {% else %}
                                             <span class="badge bg-warning">Needs Questions</span>
@@ -174,7 +174,6 @@
                                 <th>Course</th>
                                 <th>Type</th>
                                 <th>Questions</th>
-                                <th>Avg Marks</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -189,7 +188,6 @@
                                         </span>
                                     </td>
                                     <td><strong>{{ bank.question_count }}</strong></td>
-                                    <td>{{ bank.avg_marks | round(1) }}</td>
                                     <td>
                                         <a href="/viewQuestions/{{ bank.questionBankID }}" class="btn btn-sm btn-outline-primary">
                                             View

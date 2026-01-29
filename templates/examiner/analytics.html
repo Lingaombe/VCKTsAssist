@@ -1,0 +1,135 @@
+{% extends 'poyambira.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4">System Analytics</h2>
+    
+    <!-- Overview Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card" style="border-left: 4px solid #28a745;">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Questions</h6>
+                    <h3 class="mb-0">{{ total_questions }}</h3>
+                    <small class="text-muted">Across all banks</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card" style="border-left: 4px solid #007bff;">
+                <div class="card-body">
+                    <h6 class="text-muted">Question Banks</h6>
+                    <h3 class="mb-0">{{ total_banks }}</h3>
+                    <small class="text-muted">Active banks</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card" style="border-left: 4px solid #ffc107;">
+                <div class="card-body">
+                    <h6 class="text-muted">Courses</h6>
+                    <h3 class="mb-0">{{ total_courses }}</h3>
+                    <small class="text-muted">Unique courses</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card" style="border-left: 4px solid #17a2b8;">
+                <div class="card-body">
+                    <h6 class="text-muted">Subjects</h6>
+                    <h3 class="mb-0">{{ total_subjects }}</h3>
+                    <small class="text-muted">Across streams</small>
+                </div>
+            </div>
+        </div>
+    </div>
+       
+    <!-- Top Question Banks -->
+    <div class="card mb-4" style="border-left: 4px solid #007bff;">
+        <div class="card-body">
+            <h5 class="card-title">Top Question Banks by Question Count</h5>
+            {% if top_banks %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Bank Name</th>
+                                <th>Course</th>
+                                <th>Type</th>
+                                <th>Questions</th>
+                                <th>Avg Marks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bank in top_banks %}
+                                <tr>
+                                    <td>{{ bank.questionBankName | replace('_', ' ') | title }}</td>
+                                    <td>{{ bank.courseName }}</td>
+                                    <td>
+                                        <span class="badge" style="background-color: {% if bank.questionBankType == 'mcq' %}#17a2b8{% else %}#28a745{% endif %};">
+                                            {{ bank.questionBankType | upper }}
+                                        </span>
+                                    </td>
+                                    <td><strong>{{ bank.question_count }}</strong></td>
+                                    <td>{{ bank.avg_marks }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No data available</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Department Coverage -->
+    <div class="card" style="border-left: 4px solid #007bff;">
+        <div class="card-body">
+            <h5 class="card-title">Subject Coverage</h5>
+            {% if subject_coverage %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Subject</th>
+                                <th>Stream</th>
+                                <th>Banks</th>
+                                <th>Questions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for subject in subject_coverage %}
+                                <tr>
+                                    <td><strong>{{ subject.subjectName }}</strong></td>
+                                    <td>{{ subject.streamName }}</td>
+                                    <td><span class="badge bg-info">{{ subject.bank_count }}</span></td>
+                                    <td><span class="badge bg-primary">{{ subject.question_count }}</span></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No data available</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    body.dark-theme .card {
+        background-color: #1e1e1e;
+        border-color: #333;
+    }
+    
+    body.dark-theme .table {
+        color: #e0e0e0;
+    }
+    
+    body.dark-theme .table-light {
+        background-color: #2a2a2a;
+        color: #e0e0e0;
+    }
+</style>
+{% endblock %}

@@ -112,16 +112,7 @@ def home():
                 login_user(user)
                 flash('You are now logged in', 'success')
 
-                if current_user.role == 'hod':
-                    return redirect('hodDashboard')
-                if current_user.role == 'examiner':
-                    return redirect('examinerDashboard')
-                if current_user.role == 'teacher':
-                    return redirect('teacherDashboard')
-                else:
-                    flash('Invalid user role', 'danger')
-                    print('Invalid user role')
-                    return render_template('/editor.html')
+                return redirect('/main')
             else:
                 flash('Invalid password', 'danger')
                 return redirect('/')
@@ -458,7 +449,7 @@ def uploadQuestions():
     cursor.execute("SELECT * FROM questionBanks")
     QuestionBanks = cursor.fetchall()
     
-    return render_template('questions/uploadQuestions.html', QuestionBanks=QuestionBanks, upload_summary=upload_summary, user_role=current_user.role, username=current_user.username)
+    return render_template('questions/uploadQuestionsDoc.html', QuestionBanks=QuestionBanks, upload_summary=upload_summary, user_role=current_user.role, username=current_user.username)
 
 
 @app.route('/submitQuestion', methods=['POST'])
@@ -1106,18 +1097,6 @@ def examinerAnalytics():
     cursor.execute("SELECT COUNT(*) as count FROM Subjects")
     total_subjects = cursor.fetchone()['count']
     
-    # Question types distribution
-    cursor.execute("""
-        SELECT questionBankType as type, COUNT(*) as count
-        FROM questions
-        GROUP BY questionBankType
-    """)
-    type_results = cursor.fetchall()
-    total_for_type = sum([r['count'] for r in type_results]) if type_results else 1
-    question_types = [
-        {'type': r['type'], 'count': r['count'], 'percentage': (r['count'] / total_for_type * 100)}
-        for r in type_results
-    ]
     
     # Question difficulty distribution
     cursor.execute("""
@@ -1165,7 +1144,6 @@ def examinerAnalytics():
                          total_banks=total_banks,
                          total_courses=total_courses,
                          total_subjects=total_subjects,
-                         question_types=question_types,
                          difficulty_dist=difficulty_dist,
                          top_banks=top_banks,
                          subject_coverage=subject_coverage,
