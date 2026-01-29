@@ -94,8 +94,8 @@ Create a `.env` file with necessary variables. Remember to `.gitignore` it.
 # Example (.env)
 FLASK_APP=app.py
 FLASK_ENV=development
-MYSQL_HOST=localhost
-MYSQL_USER=root
+MYSQL_HOST=yourHost
+MYSQL_USER=yourUsername
 MYSQL_PASSWORD=yourPassword
 MYSQL_DB=yourDatabase
 ```
