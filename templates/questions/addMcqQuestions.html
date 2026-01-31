@@ -1,12 +1,12 @@
 {% extends 'poyambira.html' %}
 
 {% block header %}
-    <h1 class="h2">Add Questions</h1>
-    <a href="/addQuestionBank">Create New Question Bank</a>
+<h1 class="h2">Add Questions</h1>
+<a href="/addQuestionBank">Create New Question Bank</a>
 {% endblock %}
 
 {% block content %}
-<!-- Quill Editor with KaTeX support -->
+<!-- Quill + KaTeX -->
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
@@ -15,132 +15,131 @@
 <style>
   .ql-container { font-size: 14px; }
   .ql-editor { min-height: 300px; }
+  .option-editor .ql-editor { min-height: 80px; }
 </style>
 
 <div>
-    <form action="/submitQuestion" method="POST" class="quesForm" enctype="multipart/form-data">
-        <label for="questionBank">questionBank:</label>
-        <select id="questionBank" name="questionBank" required>
-            <option value="">Select questionBank</option>
-            {% for questionBank in QuestionBanks %}
-                <option value="{{ questionBank.questionBankID }}">{{ questionBank.questionBankName }} {{questionBank.courseID}} {{questionBank.questionBankType}}</option>
-            {% endfor %}
-        </select>
-        <br><br>
+<form action="/submitQuestion" method="POST" class="quesForm" enctype="multipart/form-data">
 
-        <label for="questionText">Enter question:</label><br>
-        <p style="font-size: 12px; color: #666;">Use the formula button (Σ) for LaTeX math. Use subscript/superscript buttons for H<sub>2</sub>O, E=mc<sup>2</sup>, etc.</p>
-        <div id="questionText" style="background-color: white; border: 1px solid #ccc;"></div>
-        <textarea id="questionText" name="questionText" style="display: none;" required></textarea>
-        <br><br>
+    <!-- Question Bank -->
+    <label for="questionBank">Question Bank:</label>
+    <select id="questionBank" name="questionBank" required>
+        <option value="">Select Question Bank</option>
+        {% for qb in QuestionBanks %}
+        <option value="{{ qb.questionBankID }}">
+            {{ qb.questionBankName }} {{ qb.courseID }} {{ qb.questionBankType }}
+        </option>
+        {% endfor %}
+    </select>
 
-        <label>MCQ Options:</label><br>
-        <p style="font-size: 12px; color: #666;">You can use formulas and subscripts in options too!</p>
-        
-        <div style="margin: 15px 0;">
-          <p><strong>Option 1:</strong></p>
-          <div id="option1" style="background-color: white; border: 1px solid #ccc; margin-bottom: 15px;"></div>
-          <textarea name="option1" style="display: none;" required></textarea>
-        </div>
-        
-        <div style="margin: 15px 0;">
-          <p><strong>Option 2:</strong></p>
-          <div id="option2" style="background-color: white; border: 1px solid #ccc; margin-bottom: 15px;"></div>
-          <textarea name="option2" style="display: none;" required></textarea>
-        </div>
-        
-        <div style="margin: 15px 0;">
-          <p><strong>Option 3:</strong></p>
-          <div id="option3" style="background-color: white; border: 1px solid #ccc; margin-bottom: 15px;"></div>
-          <textarea name="option3" style="display: none;" required></textarea>
-        </div>
-        
-        <div style="margin: 15px 0;">
-          <p><strong>Option 4:</strong></p>
-          <div id="option4" style="background-color: white; border: 1px solid #ccc; margin-bottom: 15px;"></div>
-          <textarea name="option4" style="display: none;" required></textarea>
-        </div>
-        <br>
-        <label for="difficulty">Difficulty level A (easy), B, C:</label><br>
-        <input name="difficulty" id="difficulty" type="text" pattern="[a-cA-C]+" required title="Only A-C allowed" placeholder="Enter difficulty">
-        <br><br>
-        <label for="unit">Enter Unit:</label><br>
-        <input name="unit" id="unit" type="text" pattern="[0-9]+" required title="Only numbers" placeholder="Enter unit">
-        <br><br>
-        <label for="marks">Allotted marks:</label><br>
-        <input name="marks" id="marks" type="text" pattern="[0-9]+" required title="Only numbers allowed" placeholder="Enter marks">
-        <br><br>
+    <br><br>
 
-        <label for="photo">Upload Question Image/Photo (optional):</label><br>
-        <input type="file" id="photo" name="photo" accept="image/*,.pdf" style="margin: 10px 0;">
-        <br><br>
+    <!-- MAIN QUESTION -->
+    <label>Enter Question:</label><br>
+    <p style="font-size:12px;color:#666;">Use Σ for formulas, sub/super for H₂O, E=mc² etc.</p>
 
-        <button class="btn btn-primary" type="submit">Add Question</button>
-        <br>
-    </form>
+    <div id="editor" style="background:#fff;border:1px solid #ccc;"></div>
+    <textarea name="questionText" id="questionText" style="display:none;"></textarea>
+    <br><br>
+
+    <!-- OPTIONS -->
+    <label>MCQ Options:</label><br>
+    <p style="font-size:12px;color:#666;">You can use formulas and subscripts in options too!</p>
+    {% for i in [1,2,3,4] %}
+    <div style="margin: 15px 0;">
+        <p><strong>Option {{ i }}:</strong></p>
+        <div id='editor{{ i }}' class="option-editor" style="background:#fff;border:1px solid #ccc;"></div>
+        <textarea name="option{{ i }}" id="option{{ i }}" style="display:none;"></textarea>
+    </div>
+    {% endfor %}
+
+    <br>
+
+    <!-- Difficulty -->
+    <label>Difficulty (A/B/C):</label><br>
+    <input name="difficulty" id="difficulty" type="text"
+           pattern="[a-cA-C]+" required placeholder="A, B or C">
+
+    <br><br>
+
+    <!-- Unit -->
+    <label>Unit:</label><br>
+    <input name="unit" id="unit" type="text" pattern="[0-9]+"
+           required placeholder="Enter unit">
+
+    <br><br>
+
+    <!-- Marks -->
+    <label>Marks:</label><br>
+    <input name="marks" id="marks" type="text" pattern="[0-9]+"
+           required placeholder="Enter marks">
+
+    <br><br>
+
+    <!-- Photo -->
+    <label>Upload Question Image (optional):</label><br>
+    <input type="file" name="photo" accept="image/*,.pdf">
+
+    <br><br>
+
+    <button class="btn btn-primary" type="submit">Add Question</button>
+</form>
 </div>
 
-<style>
-  .ql-container { font-size: 14px; }
-  #questionText .ql-editor { min-height: 300px; }
-  #option1 .ql-editor, #option2 .ql-editor, #option3 .ql-editor, #option4 .ql-editor { min-height: 80px; }
-  #questionText {
-    width: 100%;
-    max-width: 1200px;
-  }
-  .ql-toolbar { border: 1px solid #ccc; border-bottom: none; }
-  .ql-container { border: 1px solid #ccc; }
-</style>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
+
     Quill.register('modules/formula', true);
-    
+
     // Main question editor
-    const quill = new Quill('#questionText', {
-      theme: 'snow',
-      modules: {
-        toolbar: [
-          ['bold', 'italic', 'underline'],
-          [{ 'script': 'sub'}, { 'script': 'super' }],
-          ['blockquote', 'code-block'],
-          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-          ['link'],
-          ['formula']
-        ]
-      }
-    });
-    
-    // Option editors
-    const optionEditors = {};
-    for (let i = 1; i <= 4; i++) {
-      optionEditors[i] = new Quill(`#option${i}`, {
+    const quill = new Quill('#editor', {
         theme: 'snow',
         modules: {
-          toolbar: [
-            ['bold', 'italic', 'underline'],
-            [{ 'script': 'sub'}, { 'script': 'super' }],
-            ['link'],
-            ['formula']
-          ]
+            toolbar: [
+                ['bold','italic','underline'],
+                [{ 'script':'sub' }, { 'script':'super' }],
+                ['blockquote','code-block'],
+                [{ 'list':'ordered' }, { 'list':'bullet' }],
+                ['link'],
+                ['formula']
+            ]
         }
-      });
-    }
-    
-    // On form submit, copy editor content to hidden fields
-    document.querySelector('.quesForm').addEventListener('submit', function() {
-      document.querySelector('textarea[name="questionText"]').value = quill.root.innerHTML;
-      
-      // Handle option editors
-      for (let i = 1; i <= 4; i++) {
-        const optionEditor = document.querySelector(`#option${i}`);
-        const optionTextarea = document.querySelector(`textarea[name="option${i}"]`);
-        if (optionEditor && optionTextarea) {
-          optionTextarea.value = optionEditor.querySelector('.ql-editor').innerHTML;
-        }
-      }
     });
-  });
+
+    // Option editors dictionary
+    const optionEditors = {};
+
+    // Create option editors 1–4
+    for (let i = 1; i <= 4; i++) {
+        optionEditors[i] = new Quill(`#editor${i}`, {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    ['bold','italic','underline'],
+                    [{ 'script':'sub' }, { 'script':'super' }],
+                    ['link'],
+                    ['formula']
+                ]
+            }
+        });
+    }
+
+    // On submit copy HTML to hidden textareas
+    document.querySelector('.quesForm').addEventListener('submit', function() {
+
+        // Main question
+        document.querySelector('#questionText').value =
+            quill.root.innerHTML;
+
+        // Options
+        for (let i = 1; i <= 4; i++) {
+            document.querySelector(`#option${i}`).value =
+                optionEditors[i].root.innerHTML;
+        }
+    });
+
+});
 </script>
 
 {% endblock %}

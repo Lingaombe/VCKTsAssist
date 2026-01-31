@@ -30,9 +30,9 @@
         </select>
         <br><br>
 
-        <label for="questionText">Enter question:</label><br>
+        <label for="editor">Enter question:</label><br>
         <p style="font-size: 12px; color: #666;">Use the formula button (Σ) for LaTeX math. Use subscript/superscript buttons for H<sub>2</sub>O, E=mc<sup>2</sup>, etc.</p>
-        <div id="questionText" style="background-color: white; border: 1px solid #ccc;"></div>
+        <div id="editor" style="background-color: white; border: 1px solid #ccc;"></div>
         <textarea id="questionText" name="questionText" style="display: none;"></textarea>
         <br><br>
         <label for="difficulty">Difficulty level A (easy), B, C:</label><br>
@@ -66,7 +66,7 @@
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     Quill.register('modules/formula', true);
-    const quill = new Quill('#questionText', {
+    const quill = new Quill('#editor', {
       theme: 'snow',
       modules: {
         toolbar: [
@@ -80,11 +80,10 @@
       }
     });
     
-//     // On form submit, copy editor content to hidden field
-//     document.querySelector('.quesForm').addEventListener('submit', function() {
-//     //   document.querySelector('textarea[name="questionText"]').value = quill.root.innerHTML;
-//       document.querySelector("[name='questionText']").value = "default text";
-//     });
+    // On form submit, copy editor content to hidden field
+    document.querySelector('.quesForm').addEventListener('submit', function() {
+      document.querySelector('#questionText').value = quill.root.innerHTML;
+    });
 });
 </script>
 
