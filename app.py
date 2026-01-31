@@ -9,6 +9,9 @@ import os
 import time
 from werkzeug.utils import secure_filename
 from openpyxl import load_workbook
+import secrets
+import smtplib
+from datetime import datetime, timedelta
 
 load_dotenv() 
 
@@ -126,63 +129,66 @@ def home():
 def main():
     return render_template('home.html', username=current_user.username, user_role=current_user.role, subject=current_user.subj)
 
-@app.route('/teacherDashboard')
-@login_required
-def teacherDashboard():
-    if current_user.role != 'teacher':
-        flash('Access denied. Teacher only.', 'danger')
-        return redirect('/main')
+# @app.route('/teacherDashboard')
+# @login_required
+# def teacherDashboard():
+#     if current_user.role != 'teacher':
+#         flash('Access denied. Teacher only.', 'danger')
+#         return redirect('/main')
     
-    # Get teacher's subject info
-    cursor.execute("SELECT subjectName FROM Subjects WHERE subjectID = %s", (current_user.subj,))
-    subject_result = cursor.fetchone()
-    subject_name = subject_result['subjectName'] if subject_result else "N/A"
+#     # Get teacher's subject info
+#     cursor.execute("SELECT subjectName FROM Subjects WHERE subjectID = %s", (current_user.subj,))
+#     subject_result = cursor.fetchone()
+#     subject_name = subject_result['subjectName'] if subject_result else "N/A"
     
-    # Get teacher's question banks
-    cursor.execute("""
-        SELECT DISTINCT qb.* 
-        FROM questionBanks qb
-        JOIN Courses c ON qb.courseID = c.courseID
-        WHERE c.subjectID = %s
-    """, (current_user.subj,))
-    banks = cursor.fetchall()
-    total_banks = len(banks)
+#     # Get teacher's question banks
+#     cursor.execute("""
+#         SELECT DISTINCT qb.* 
+#         FROM questionBanks qb
+#         JOIN Courses c ON qb.courseID = c.courseID
+#         WHERE c.subjectID = %s
+#     """, (current_user.subj,))
+#     banks = cursor.fetchall()
+#     total_banks = len(banks)
     
-    # Get total questions
-    cursor.execute("""
-        SELECT COUNT(*) as count FROM questions q
-        JOIN questionBanks qb ON q.questionBankID = qb.questionBankID
-        JOIN Courses c ON qb.courseID = c.courseID
-        WHERE c.subjectID = %s
-    """, (current_user.subj,))
-    total_questions = cursor.fetchone()['count']
+#     # Get total questions
+#     cursor.execute("""
+#         SELECT COUNT(*) as count FROM questions q
+#         JOIN questionBanks qb ON q.questionBankID = qb.questionBankID
+#         JOIN Courses c ON qb.courseID = c.courseID
+#         WHERE c.subjectID = %s
+#     """, (current_user.subj,))
+#     total_questions = cursor.fetchone()['count']
     
-    # Get total courses in subject
-    cursor.execute("""
-        SELECT COUNT(*) as count FROM Courses WHERE subjectID = %s
-    """, (current_user.subj,))
-    total_courses = cursor.fetchone()['count']
+#     # Get total courses in subject
+#     cursor.execute("""
+#         SELECT COUNT(*) as count FROM Courses WHERE subjectID = %s
+#     """, (current_user.subj,))
+#     total_courses = cursor.fetchone()['count']
     
-    return render_template('teacher/dashboard.html', 
-                         username=current_user.username, 
-                         user_role=current_user.role,
-                         total_banks=total_banks,
-                         total_questions=total_questions,
-                         total_courses=total_courses,
-                         subject_name=subject_name)
+#     return render_template('teacher/dashboard.html', 
+#                          username=current_user.username, 
+#                          user_role=current_user.role,
+#                          total_banks=total_banks,
+#                          total_questions=total_questions,
+#                          total_courses=total_courses,
+#                          subject_name=subject_name)
 
-@app.route('/examinerDashboard')
-@login_required
-def examinerDashboard():
-    return render_template('examiner/dashboard.html', username=current_user.username, user_role=current_user.role)
+# @app.route('/examinerDashboard')
+# @login_required
+# def examinerDashboard():
+#     if current_user.role != 'examiner':
+#         flash('Access denied. HOD only.', 'danger')
+#         return redirect('/main')
+#     return render_template('examiner/dashboard.html', username=current_user.username, user_role=current_user.role)
 
-@app.route('/hodDashboard')
-@login_required
-def hodDashboard():
-    if current_user.role != 'hod':
-        flash('Access denied. HOD only.', 'danger')
-        return redirect('/main')
-    return render_template('hod/dashboard.html', username=current_user.username, user_role=current_user.role)
+# @app.route('/hodDashboard')
+# @login_required
+# def hodDashboard():
+#     if current_user.role != 'hod':
+#         flash('Access denied. HOD only.', 'danger')
+#         return redirect('/main')
+#     return render_template('hod/dashboard.html', username=current_user.username, user_role=current_user.role)
 
 @app.route('/logout')
 @login_required
@@ -219,6 +225,45 @@ def profile():
     }
     
     return render_template('profile.html', user=user_info, member_since=member_since, user_role=current_user.role, username=current_user.username)
+
+
+@app.route('/changePassword', methods=['GET', 'POST'])
+@login_required
+def changePassword():
+    """Change password for logged-in user. Validates current password against MySQL."""
+    if request.method == 'POST':
+        current_pw = request.form.get('current_password', '')
+        new_pw = request.form.get('new_password', '')
+        confirm_pw = request.form.get('confirm_password', '')
+
+        # Fetch stored password hash from DB
+        cursor.execute("SELECT upassword FROM Users WHERE id = %s", (current_user.id,))
+        row = cursor.fetchone()
+        stored_hash = row.get('upassword')
+        if not stored_hash or not sha256_crypt.verify(current_pw, stored_hash):
+            flash('Current password is incorrect.', 'danger')
+            return redirect('/profile')
+
+        if not new_pw or new_pw != confirm_pw:
+            flash('New passwords do not match or are empty.', 'danger')
+            return redirect('/profile')
+
+        if len(new_pw) < 6:
+            flash('New password must be at least 6 characters long.', 'danger')
+            return redirect('/profile')
+
+        # Hash and save new password
+        new_hash = sha256_crypt.encrypt(new_pw)
+        try:
+            cursor.execute("UPDATE Users SET upassword = %s WHERE id = %s", (new_hash, current_user.id))
+            conn.commit()
+            flash('Password updated successfully.', 'success')
+            return redirect('/profile')
+        except Exception as e:
+            flash(f'Failed to update password: {str(e)}', 'danger')
+            return render_template('reset.html', user_role=current_user.role, username=current_user.username)
+
+    return render_template('reset.html', user_role=current_user.role, username=current_user.username)
 
 @app.route('/addQuestionBank')
 @login_required

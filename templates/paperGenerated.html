@@ -71,19 +71,19 @@
             <p><b>Q.1. Select correct alternative (One mark each):</b></p>
             {% set i=0 %}
             {% for mcq in mcqQuestions %}
-                <li class="question">{{mcq["questionBody"]}}</li> 
+                <li class="question">{{mcq["questionBody"] | safe}}</li> 
                 <ol class="mcqs">
-                    <li>{{mcq["option1"]}}</li>
-                    <li>{{mcq["option2"]}}</li>
-                    <li>{{mcq["option3"]}}</li>
-                    <li>{{mcq["option4"]}}</li>
+                    <li>{{mcq["option1"] | safe}}</li>
+                    <li>{{mcq["option2"] | safe}}</li>
+                    <li>{{mcq["option3"] | safe}}</li>
+                    <li>{{mcq["option4"] | safe}}</li>
                 </ol>
             {% endfor %}
             <br>
             {% if paperDetails[4] == "EXT" %}
                 <p><b>Attempt any TWO (Eight marks each):</b></p>
                 {% for laq in laqQuestions %}
-                    <li class="question">{{laq}}</li>
+                    <li class="question">{{laq | safe}}</li>
                 {% endfor %}
             {% endif %}
             <br>
@@ -93,7 +93,7 @@
                 <p><b>Attempt any FOUR (Four marks each):</b></p>
             {% endif %}
             {% for saq in saqQuestions %}
-                <li class="question">{{saq}}</li>
+                <li class="question">{{saq | safe}}</li>
             {% endfor %}
             <br>
             

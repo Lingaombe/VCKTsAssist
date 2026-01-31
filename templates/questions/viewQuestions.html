@@ -39,16 +39,16 @@
                     {% for question in questions %}
                     <tr>
                         <td>{{ question.questionID }}</td>
-                        <td>{{ question.questionBody[:100] }}{% if question.questionBody|length > 100 %}...{% endif %}</td>
+                        <td>{{ question.questionBody[:100]|safe }}{% if question.questionBody|length > 100 %}...{% endif %}</td>
                         <td>{{ question.questionMarks }}</td>
                         {% if bank.questionBankType == 'mcq' %}
                         <td>
                             <button class="btn btn-sm btn-info" onclick="showOptions({{ loop.index }})">View</button>
                             <div id="options-{{ loop.index }}" style="display:none; margin-top: 10px;">
-                                {% if question.questionOption1 %}<p>A. {{ question.questionOption1 }}</p>{% endif %}
-                                {% if question.questionOption2 %}<p>B. {{ question.questionOption2 }}</p>{% endif %}
-                                {% if question.questionOption3 %}<p>C. {{ question.questionOption3 }}</p>{% endif %}
-                                {% if question.questionOption4 %}<p>D. {{ question.questionOption4 }}</p>{% endif %}
+                                {% if question.questionOption1 %}<p>A. {{ question.questionOption1|safe }}</p>{% endif %}
+                                {% if question.questionOption2 %}<p>B. {{ question.questionOption2|safe }}</p>{% endif %}
+                                {% if question.questionOption3 %}<p>C. {{ question.questionOption3|safe }}</p>{% endif %}
+                                {% if question.questionOption4 %}<p>D. {{ question.questionOption4|safe }}</p>{% endif %}
                             </div>
                         </td>
                         {% endif %}
