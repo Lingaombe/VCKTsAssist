@@ -1,10 +1,24 @@
 # 📄 VCKTsAssist
 
-**VCKTsAssist** is a role-based web application system that streamlines the creation and management of dynamic question papers. Designed for educational institutions, it allows teachers to upload questions, generate exams, and manage question banks; all while giving HoDs and examiners administrative control.
+`VCKTsAssist` is a role-based Flask web application to create, manage and generate question papers for educational institutions. It supports role-based access (Teacher, HoD, Examiner), bulk uploads, course/subject management, and automated paper assembly.
 
----
+**Quick overview of current functionality (as implemented):**
 
-## 🚀 Features
+- **Authentication & users:** Signup, login, logout; role-based sessions via `flask-login` (`teacher`, `examiner`, `hod`).
+- **Profiles:** View user profile and department/subject info (`/profile`).
+- **Streams / Subjects / Courses:** CRUD-like routes for HoD to add/edit/delete subjects and courses (`/editSubjects`, `/addSubject`, `/editSubject`, `/deleteSubject`, `/editCourses`, `/addCourse`, `/editCourse`, `/deleteCourse`).
+- **Teachers management:** HoD can list and remove teachers (`/editTeachers`, `/removeTeacher/<id>`).
+- **Question banks:** Create and manage question banks (`/addQuestionBank`, `/verifyAddQuestionBank`, `/viewQuestionBanks`, `/editBanks`, `/deleteBank/<id>`).
+- **Questions:** Add MCQ and descriptive questions, edit and delete (`/addMcqQuestions`, `/addQuestions`, `/submitQuestion`, `/deleteQuestion/<id>`, `/editQuestions`, `/editMyQuestions`, `/viewQuestions/<bankID>`).
+- **Bulk upload:** Upload Excel files to add many questions at once (`/uploadQuestions`) using `pandas` + `openpyxl`. Required columns validated for each bank type.
+- **File uploads:** Support for image uploads attached to questions; files saved under `static/uploads` with allowed types: `png,jpg,jpeg,gif,pdf` and max size 16MB.
+- **Paper generation:** Generate papers from selected banks and structure (`/generatePaper`, `/paperGenerated`) with support for paper types `INT`, `EXT`, `PR`. Assembling logic implemented in `utils.assemblePaper()` with MCQ/SAQ/LAQ selection and `questionUsed` marking.
+- **AJAX endpoints:** `GET /getSubjects/<streamID>`, `GET /getCourses/<subjectID>/<semester>`, `GET /getBanks/<courseID>` return JSON used by the UI.
+- **Search & filtering:** Server-side search for question banks (`/search`) and filtered views for banks/papers.
+- **Examiner dashboards & analytics:** Examiner-specific pages for reviewing papers, printing papers, and analytics (`/examinerDashboard`, `/reviewPapers`, `/examinerAnalytics`, `/printPaper/<course_id>`).
+- **Teacher analytics:** Teacher-specific analytics by subject (`/teacherAnalytics`).
+- **HOD pages:** Manage banks, papers, subjects, courses and teachers (`/editBanks`, `/editPapers`, `/editSubjects`, etc.).
+- **Error handling:** Custom 404 page (`pageNotFound.html`) and flash messaging across flows.
 
 * 🧑‍🏫 **Teachers**
 
@@ -29,30 +43,20 @@
   * Duplicate prevention via `used` status
   * Flagging and deletion workflows
 
----
+## Tech stack & libraries
 
-## 📚 Tech Stack
+- Python 3.x
+- Flask
+- flask-login
+- mysql-connector-python
+- pandas
+- openpyxl
+- python-dotenv
+- passlib
 
-* **Frontend:** HTML, CSS, JavaScript with Jinja templating (Flask)
-* **Backend:** Flask (Python)
-* **Database:** MySQL
-* **File Upload:** Excel (.xlsx) parser
-* **APIs:** RESTful endpoints for role-based actions
+Check `requirements.txt` for exact pinned versions.
 
----
-
-## 🖼️ Pages
-
-| Role     | Pages                                                         |
-| -------- | ------------------------------------------------------------- |
-| All      | Login                                                         |
-| Teacher  | Dashboard, Upload Questions, Manage Questions, Generate Paper |
-| HoD      | Dashboard, Add Courses, Manage Teachers, Delete Questions     |
-| Examiner | Dashboard, Generate & Print Papers                            |
-
----
-
-## 📂 Folder Structure (Suggested)
+## 📂 Folder Structure
 
 ```
 VCKTsAssist/
@@ -66,18 +70,32 @@ VCKTsAssist/
 ├── README.md
 └── .env                    # Environment configuration (.gitignore this)
 ```
+## Important files
+
+- `app.py` — main Flask application with routes and business logic.
+- `utils.py` — helper functions for assembling papers (`assemblePaper`, `getMCQs`, `getSAQs`, `getLAQs`, `banksToUse`).
+- `dash.py` — small helper file (currently minimal).
+- `templates/` — Jinja2 templates (pages for login, signup, dashboards, question forms, paper views).
+- `static/uploads/` — uploaded files and images.
 ---
 
 ## 🛠️ Setup Instructions
 
-### 1. Clone the Repo
+## Running locally (Windows)
+
+### 1. Create and activate a virtual environment
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+### 2. Clone the Repo
 ```bash
 git clone https://github.com/Lingaombe/VCKTsAssist.git
 cd VCKTsAssist
-````
+```
 
-### 2. Install Dependencies
-
+### 3. Install Dependencies
 * Backend (Flask + MySQL)
 
 ```bash
@@ -86,25 +104,30 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 3. Configure Environment
-
+### 4. Configure Environment
 Create a `.env` file with necessary variables. Remember to `.gitignore` it.
 
+
 ```env
-# Example (.env)
 FLASK_APP=app.py
 FLASK_ENV=development
-MYSQL_HOST=yourHost
-MYSQL_USER=yourUsername
-MYSQL_PASSWORD=yourPassword
-MYSQL_DB=yourDatabase
+MYSQL_HOST=localhost
+MYSQL_USER=root
+MYSQL_PASSWORD=yourpassword
+MYSQL_DB=VCKTsAssist
+SECRET_KEY=someSecret
 ```
 
-### 4. Run the App
+4. Ensure the MySQL database schema exists and tables used in `app.py` are created (Users, Streams, Subjects, Courses, questionBanks, questions). The app expects a local MySQL instance by default.
+
+### 5. Run the app:
 
 ```bash
-flask run
+python app.py
 ```
+
+The app runs in debug mode by default when executed directly.
+
 
 ## 🤝 Contributing
 
