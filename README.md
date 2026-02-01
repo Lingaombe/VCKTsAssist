@@ -118,7 +118,7 @@ MYSQL_DB=VCKTsAssist
 SECRET_KEY=someSecret
 ```
 
-4. Ensure the MySQL database schema exists and tables used in `app.py` are created (Users, Streams, Subjects, Courses, questionBanks, questions). The app expects a local MySQL instance by default.
+Ensure the MySQL database schema exists and tables used in `app.py` are created (Users, Streams, Subjects, Courses, questionBanks, questions). The app expects a local MySQL instance by default.
 
 ### 5. Run the app:
 
