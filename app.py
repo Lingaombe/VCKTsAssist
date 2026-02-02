@@ -912,7 +912,6 @@ def deleteUsedQuestions():
         return redirect('/main')
     
     try:
-        # Assuming there is a table 'UsedQuestions' that tracks used questions
         cursor.execute("DELETE FROM questions WHERE questionUsed = 1 LIMIT 1000;")
         conn.commit()
         flash('Used questions deleted successfully!', 'success')
