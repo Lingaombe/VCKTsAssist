@@ -2,7 +2,6 @@ from flask import *
 from flask_login import *
 from passlib.hash import sha256_crypt
 from utils import *
-from dash import *
 import pandas as pd
 from dotenv import load_dotenv
 import os
@@ -58,6 +57,8 @@ def load_user(id):
     if user:
         return User(id=user['id'], username=user['username'], email=user['email'], role=user['urole'], subj=user['subjectID'])
     return None
+
+# ============= ZA ALIYENSE =============
 
 @app.route('/')
 def login():            
@@ -129,67 +130,6 @@ def home():
 def main():
     return render_template('home.html', username=current_user.username, user_role=current_user.role, subject=current_user.subj)
 
-# @app.route('/teacherDashboard')
-# @login_required
-# def teacherDashboard():
-#     if current_user.role != 'teacher':
-#         flash('Access denied. Teacher only.', 'danger')
-#         return redirect('/main')
-    
-#     # Get teacher's subject info
-#     cursor.execute("SELECT subjectName FROM Subjects WHERE subjectID = %s", (current_user.subj,))
-#     subject_result = cursor.fetchone()
-#     subject_name = subject_result['subjectName'] if subject_result else "N/A"
-    
-#     # Get teacher's question banks
-#     cursor.execute("""
-#         SELECT DISTINCT qb.* 
-#         FROM questionBanks qb
-#         JOIN Courses c ON qb.courseID = c.courseID
-#         WHERE c.subjectID = %s
-#     """, (current_user.subj,))
-#     banks = cursor.fetchall()
-#     total_banks = len(banks)
-    
-#     # Get total questions
-#     cursor.execute("""
-#         SELECT COUNT(*) as count FROM questions q
-#         JOIN questionBanks qb ON q.questionBankID = qb.questionBankID
-#         JOIN Courses c ON qb.courseID = c.courseID
-#         WHERE c.subjectID = %s
-#     """, (current_user.subj,))
-#     total_questions = cursor.fetchone()['count']
-    
-#     # Get total courses in subject
-#     cursor.execute("""
-#         SELECT COUNT(*) as count FROM Courses WHERE subjectID = %s
-#     """, (current_user.subj,))
-#     total_courses = cursor.fetchone()['count']
-    
-#     return render_template('teacher/dashboard.html', 
-#                          username=current_user.username, 
-#                          user_role=current_user.role,
-#                          total_banks=total_banks,
-#                          total_questions=total_questions,
-#                          total_courses=total_courses,
-#                          subject_name=subject_name)
-
-# @app.route('/examinerDashboard')
-# @login_required
-# def examinerDashboard():
-#     if current_user.role != 'examiner':
-#         flash('Access denied. HOD only.', 'danger')
-#         return redirect('/main')
-#     return render_template('examiner/dashboard.html', username=current_user.username, user_role=current_user.role)
-
-# @app.route('/hodDashboard')
-# @login_required
-# def hodDashboard():
-#     if current_user.role != 'hod':
-#         flash('Access denied. HOD only.', 'danger')
-#         return redirect('/main')
-#     return render_template('hod/dashboard.html', username=current_user.username, user_role=current_user.role)
-
 @app.route('/logout')
 @login_required
 def logout():
@@ -225,6 +165,8 @@ def profile():
     }
     
     return render_template('profile.html', user=user_info, member_since=member_since, user_role=current_user.role, username=current_user.username)
+
+# ============ ZA MAFUNSO =============
 
 @app.route('/addQuestionBank')
 @login_required
@@ -298,7 +240,6 @@ def editQuestions():
     
 @app.route('/search')
 def search():
-    # simple server-side search across name, type and courseID
     q = request.args.get('search', '').strip()
     if q:
         like = f"%{q}%"
@@ -330,6 +271,14 @@ def viewQuestions(questionBankID):
     
     return render_template('questions/viewQuestions.html', bank=bank, questions=questions, user_role=current_user.role, username=current_user.username)
 
+@app.route('/viewQuestionBanks')
+@login_required
+def viewQuestionBanks():
+    cursor.execute("select * from questionBanks;")
+    QuestionBanks = cursor.fetchall()
+
+    return render_template('questions/viewQuestionBanks.html', QuestionBanks=QuestionBanks, user_role=current_user.role, username=current_user.username)
+
 @app.route('/addMcqQuestions')
 @login_required
 def addMcqQuestions():
@@ -343,6 +292,7 @@ def addQuestions():
     cursor.execute("SELECT * FROM questionBanks WHERE questionBankType !=  %s;",("mcq",))
     QuestionBanks = cursor.fetchall()
     return render_template('questions/addQuestions.html', QuestionBanks=QuestionBanks, user_role=current_user.role, username=current_user.username)
+
 
 @app.route('/uploadQuestions', methods=['GET', 'POST'])
 @login_required
@@ -457,6 +407,7 @@ def uploadQuestions():
     
     return render_template('questions/uploadQuestionsDoc.html', QuestionBanks=QuestionBanks, upload_summary=upload_summary, user_role=current_user.role, username=current_user.username)
 
+# ============= ENI MZINDA =============
 
 @app.route('/submitQuestion', methods=['POST'])
 @login_required
@@ -503,15 +454,6 @@ def submitQuestion():
     except Exception as e:
         flash(f"Error adding question: {str(e)}")
         return redirect("/addQuestionBank")
-    
-@app.route('/viewQuestionBanks')
-@login_required
-def viewQuestionBanks():
-    cursor.execute("select * from questionBanks;")
-    QuestionBanks = cursor.fetchall()
-
-    return render_template('questions/viewQuestionBanks.html', QuestionBanks=QuestionBanks, user_role=current_user.role, username=current_user.username)
-
 
 @app.route("/generatePaper")
 @login_required
@@ -608,7 +550,7 @@ def paperGenerated():
             return render_template("paperGenerated.html", paperDetails=paperDetails, mcqQuestions=mcqQuestions, saqQuestions=saqQuestions, laqQuestions=laqQuestions)
 
 
-# ============= HOD ROUTES =============
+# ============= HOD =============
 
 @app.route('/editCourses', methods=['GET', 'POST'])
 @login_required
@@ -653,11 +595,12 @@ def addCourse():
         marks_internal = request.form.get('marksInternal')
         marks_external = request.form.get('marksExternal')
         marks_practical = request.form.get('marksPractical')
+        course = request.form.get('courseCode')
         
         cursor.execute("""
-            INSERT INTO Courses (subjectID, courseName, courseSem, marksInternal, marksExternal, marksPractical)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """, (subject_id, course_name, semester, marks_internal, marks_external, marks_practical))
+            INSERT INTO Courses (subjectID, courseID, courseName, courseSem, marksInternal, marksExternal, marksPractical)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (subject_id, course, course_name, semester, marks_internal, marks_external, marks_practical))
         conn.commit()
         flash(f'Course "{course_name}" added successfully!', 'success')
     except Exception as e:
@@ -709,7 +652,54 @@ def deleteCourse(course_id):
     
     return redirect('/editCourses')
 
-# ===== TEACHERS MANAGEMENT =====
+# ===== TEACHERS =====
+
+@app.route('/assign', methods=['GET'])
+@login_required
+def assign():
+    if current_user.role != 'hod':
+        flash('Unauthorized access', 'danger')
+        return redirect('/main')
+    
+    cursor.execute("SELECT * FROM Users WHERE urole='teacher' ORDER BY username")
+    teachers = cursor.fetchall()
+    print(teachers)
+
+    cursor.execute("""
+        SELECT c.*, s.subjectName 
+        FROM Courses c 
+        JOIN Subjects s ON c.subjectID = s.subjectID
+        ORDER BY c.courseName
+    """)
+    courses = cursor.fetchall()
+    
+    return render_template('hod/assignTeacher.html',
+                         teachers=teachers,
+                         courses=courses,
+                         username=current_user.username,
+                         user_role=current_user.role)
+
+@app.route('/assignTeacher', methods=['POST'])
+@login_required
+def assignTeacher():
+    if current_user.role != 'hod':
+        flash('Unauthorized access', 'danger')
+        return redirect('/main')
+    
+    try:
+        teacher_id = request.form.get('teacher')
+        course_id = request.form.get('course')
+        
+        cursor.execute("""
+            INSERT INTO Teachers (courseID, teacherID)
+            VALUES (%s, %s)
+        """, (course_id, teacher_id))  
+        conn.commit()
+        flash('Teacher assigned to course successfully!', 'success')
+    except Exception as e:
+        flash(f'Error assigning teacher: {str(e)}', 'danger')
+    
+    return redirect('/editTeachers')
 
 @app.route('/editTeachers', methods=['GET'])
 @login_required
@@ -770,7 +760,7 @@ def removeTeacher(user_id):
     
     return redirect('/editTeachers')
 
-# ===== SUBJECTS MANAGEMENT =====
+# ===== SUBJECTS =====
 
 @app.route('/editSubjects', methods=['GET', 'POST'])
 @login_required

@@ -98,9 +98,8 @@ option:focus {
   border-radius: 10px;
   backdrop-filter: blur(20px); 
   -webkit-backdrop-filter: blur(20px);
-  background-color: #555555;
 }
-.success{
+/* .success{
   color: #155724;
 }
 .error{
@@ -113,5 +112,30 @@ option:focus {
   color: #856404;
 }
 .danger{
-    color: red;
+
+  color: red;
+} */
+
+.success {
+  color: #0f5132;
+  background-color: #d1e7dd;
+  border: 1px solid #badbcc;
+}
+
+.error, .danger {
+  color: #842029;
+  background-color: #f8d7da;
+  border: 1px solid #f5c2c7;
+}
+
+.info {
+  color: #055160;
+  background-color: #cff4fc;
+  border: 1px solid #b6effb;
+}
+
+.warning {
+  color: #664d03;
+  background-color: #fff3cd;
+  border: 1px solid #ffecb5;
 }
