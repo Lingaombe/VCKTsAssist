@@ -904,6 +904,23 @@ def editBanks():
                          username=current_user.username,
                          user_role=current_user.role)
 
+@app.route('/deleteUsedQuestions')
+@login_required
+def deleteUsedQuestions():
+    if current_user.role != 'hod':
+        flash('Unauthorized access', 'danger')
+        return redirect('/main')
+    
+    try:
+        # Assuming there is a table 'UsedQuestions' that tracks used questions
+        cursor.execute("DELETE FROM questions WHERE questionUsed = 1 LIMIT 1000;")
+        conn.commit()
+        flash('Used questions deleted successfully!', 'success')
+    except Exception as e:
+        flash(f'Error deleting used questions: {str(e)}', 'danger')
+    
+    return redirect('/editBanks')
+
 @app.route('/deleteBank/<int:bank_id>', methods=['GET'])
 @login_required
 def deleteBank(bank_id):
