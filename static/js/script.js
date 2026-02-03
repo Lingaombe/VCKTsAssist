@@ -45,3 +45,12 @@
         });
     }
 
+// $(document).ready(function() {
+//   $(".flashes").each(function() {
+//     setTimeout(() => {
+//       $(this).fadeOut('slow', function() {
+//         $(this).remove();
+//       });
+//     }, 5000);
+//   });
+// });
