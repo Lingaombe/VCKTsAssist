@@ -85,7 +85,17 @@ option:focus {
 .flashes{
   position: fixed;
   top: 10px;  
+  display: block;
+  animation: disp 3s ease forwards;
 }
+
+@keyframes disp {
+  0% {opacity: 0;}
+  10% {opacity: 1;}
+  90% {opacity: 1;}
+  100% {display: none;}
+}
+
 .flashes li{
   list-style: none;
   border-radius: 8px;
