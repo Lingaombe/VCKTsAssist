@@ -1212,87 +1212,108 @@ def teacherAnalytics():
     
     # Get teacher's questions
     cursor.execute("""
-        SELECT COUNT(*) as count FROM questions q
-        JOIN questionBanks qb ON q.questionBankID = qb.questionBankID
-        JOIN Courses c ON qb.courseID = c.courseID
-        WHERE c.subjectID = %s
-    """, (current_user.subj,))
-    total_questions = cursor.fetchone()['count']
-    
-    # Get banks
-    cursor.execute("""
-        SELECT COUNT(*) as count FROM questionBanks qb
-        JOIN Courses c ON qb.courseID = c.courseID
-        WHERE c.subjectID = %s
-    """, (current_user.subj,))
-    total_banks = cursor.fetchone()['count']
-    
-    # Question type distribution
-    cursor.execute("""
-        SELECT questionBankType as type, COUNT(*) as count
+        SELECT COUNT(*) as count 
         FROM questions q
         JOIN questionBanks qb ON q.questionBankID = qb.questionBankID
         JOIN Courses c ON qb.courseID = c.courseID
-        WHERE c.subjectID = %s
-        GROUP BY questionBankType
-    """, (current_user.subj,))
+        JOIN Teachers t ON c.courseID = t.courseID
+        WHERE t.teacherID = %s
+    """, (current_user.id,))
+    total_questions = cursor.fetchone()['count']
+
+
+    # Get teacher's banks
+    cursor.execute("""
+        SELECT COUNT(*) as count
+        FROM questionBanks qb
+        JOIN Courses c ON qb.courseID = c.courseID
+        JOIN Teachers t ON c.courseID = t.courseID
+        WHERE t.teacherID = %s
+    """, (current_user.id,))
+    total_banks = cursor.fetchone()['count']
+
+
+    # Question type distribution
+    cursor.execute("""
+        SELECT q.questionBankType AS type, COUNT(*) AS count
+        FROM questionBanks q
+        JOIN questions qb ON q.questionBankID = qb.questionBankID
+        JOIN Courses c ON q.courseID = c.courseID
+        JOIN Teachers t ON c.courseID = t.courseID
+        WHERE t.teacherID = %s
+        GROUP BY q.questionBankType
+    """, (current_user.id,))
     type_results = cursor.fetchall()
+
     total_for_type = sum([r['count'] for r in type_results]) if type_results else 1
     question_types = [
         {'type': r['type'], 'count': r['count'], 'percentage': (r['count'] / total_for_type * 100)}
         for r in type_results
     ]
-    
+
+
     # Difficulty distribution
     cursor.execute("""
-        SELECT questionGrade as difficulty, COUNT(*) as count
+        SELECT q.questionGrade AS difficulty, COUNT(*) AS count
         FROM questions q
         JOIN questionBanks qb ON q.questionBankID = qb.questionBankID
         JOIN Courses c ON qb.courseID = c.courseID
-        WHERE c.subjectID = %s
-        GROUP BY questionGrade
-    """, (current_user.subj,))
+        JOIN Teachers t ON c.courseID = t.courseID
+        WHERE t.teacherID = %s
+        GROUP BY q.questionGrade
+    """, (current_user.id,))
     diff_results = cursor.fetchall()
+
     total_for_diff = sum([r['count'] for r in diff_results]) if diff_results else 1
     difficulty_dist = [
         {'difficulty': r['difficulty'], 'count': r['count'], 'percentage': (r['count'] / total_for_diff * 100)}
         for r in diff_results
     ]
-    
+
+
     # Marks distribution
     cursor.execute("""
-        SELECT SUM(questionMarks) as total_marks, COUNT(*) as question_count
+        SELECT SUM(q.questionMarks) AS total_marks, COUNT(*) AS question_count
         FROM questions q
         JOIN questionBanks qb ON q.questionBankID = qb.questionBankID
         JOIN Courses c ON qb.courseID = c.courseID
-        WHERE c.subjectID = %s
-    """, (current_user.subj,))
+        JOIN Teachers t ON c.courseID = t.courseID
+        WHERE t.teacherID = %s
+    """, (current_user.id,))
     marks_result = cursor.fetchone()
-    avg_marks = (marks_result['total_marks'] / marks_result['question_count'] if marks_result['question_count'] else 0) if marks_result else 0
-    
+
+    avg_marks = (
+        (marks_result['total_marks'] / marks_result['question_count'])
+        if marks_result and marks_result['question_count']
+        else 0
+    )
+
+
     # Top banks
     cursor.execute("""
-        SELECT qb.*, c.courseName, COUNT(q.questionID) as question_count, AVG(q.questionMarks) as avg_marks
+        SELECT qb.*, c.courseName, COUNT(q.questionID) AS question_count, AVG(q.questionMarks) AS avg_marks
         FROM questionBanks qb
         JOIN Courses c ON qb.courseID = c.courseID
+        JOIN Teachers t ON c.courseID = t.courseID
         LEFT JOIN questions q ON qb.questionBankID = q.questionBankID
-        WHERE c.subjectID = %s
+        WHERE t.teacherID = %s
         GROUP BY qb.questionBankID
         ORDER BY question_count DESC
         LIMIT 10
-    """, (current_user.subj,))
+    """, (current_user.id,))
     top_banks = cursor.fetchall()
     
     # Courses info
     cursor.execute("""
-        SELECT c.*, COUNT(DISTINCT qb.questionBankID) as bank_count, COUNT(q.questionID) as question_count
+        SELECT c.*, COUNT(DISTINCT qb.questionBankID) AS bank_count, COUNT(q.questionID) AS question_count
         FROM Courses c
+        JOIN Teachers t ON c.courseID = t.courseID
         LEFT JOIN questionBanks qb ON c.courseID = qb.courseID
         LEFT JOIN questions q ON qb.questionBankID = q.questionBankID
-        WHERE c.subjectID = %s
+        WHERE t.teacherID = %s
         GROUP BY c.courseID
         ORDER BY c.courseName
-    """, (current_user.subj,))
+    """, (current_user.id,))
     courses_info = cursor.fetchall()
     
     return render_template('teacher/analytics.html',
