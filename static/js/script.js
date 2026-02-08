@@ -45,13 +45,6 @@
         });
     }
 
-// $(document).ready(function() {
-//   $(".flashes").each(function() {
-//     setTimeout(() => {
-//       $(this).fadeOut('slow', function() {
-//         $(this).remove();
-//       });
-//     }, 5000);
-//   });
-// });
-
+$(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+})

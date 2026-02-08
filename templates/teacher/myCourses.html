@@ -2,6 +2,11 @@
 
 {% block header %}
     <h1 class="h2">My Courses</h1>
+    <div>
+        <a href="/addMcqQuestions">Add MCQs</a>
+        <a href="#"> | </a>
+        <a href="/addQuestions">Add Descriptive</a>
+    </div>
 {% endblock %}
 
 {% block content %}
@@ -18,8 +23,9 @@
             </tr>
         </thead>
         <tbody>
+            <!-- [{'courseID': 'OEL03CSC22', 'questionBankID': 1, 'questionBankType': 'mcq', 'questionBankName': 'csc1', 'courseName': 'Introduction to Web-II'}, {'courseID': 'OEL03CSC22', 'questionBankID': 5, 'questionBankType': 'laq', 'questionBankName': 'web1', 'courseName': 'Introduction to Web-II'}] -->
             {% for course in courses %}
-                <tr>
+                <tr style="cursor: pointer;" onclick="location.href='/editMyQuestions'" data-toggle="tooltip" data-placement="top" title="View Questions">
                     <td>{{ course.courseID }}</td>
                     <td>{{ course.courseName }}</td>
                     <td>{{ course.courseSem }}</td>

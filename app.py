@@ -1344,10 +1344,11 @@ def myCourses():
         """, (current_user.id,))
     courses = cursor.fetchall()
     print(courses)
+
     return render_template('teacher/myCourses.html', 
-                         courses=courses, 
-                         user_role=current_user.role, 
-                         username=current_user.username)
+                        courses=courses, 
+                        user_role=current_user.role, 
+                        username=current_user.username)
 
 @app.route('/editMyQuestions', methods=['GET'])
 @login_required
@@ -1358,11 +1359,13 @@ def editMyQuestions():
     
     # Get only teacher's question banks (from their subject)
     cursor.execute("""
-        SELECT qb.* FROM questionBanks qb
+        SELECT qb.* 
+        FROM questionBanks qb
         JOIN Courses c ON qb.courseID = c.courseID
-        WHERE c.subjectID = %s
+        JOIN Teachers t ON c.courseID = t.courseID
+        WHERE t.TeacherID = %s
         ORDER BY qb.questionBankName
-    """, (current_user.subj,))
+    """, (current_user.id,))
     QuestionBanks = cursor.fetchall()
     
     return render_template('questions/editQuestions.html', 
