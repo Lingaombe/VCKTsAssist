@@ -1306,6 +1306,28 @@ def teacherAnalytics():
                          user_role=current_user.role,
                          username=current_user.username)
 
+@app.route('/myCourses', methods=['GET'])
+@login_required           
+def myCourses():
+    if current_user.role != 'teacher':
+        flash('Access denied. Teacher only.', 'danger')
+        return redirect('/main')
+    
+    cursor.execute("""
+        SELECT c.*, u.username AS teacherName
+        FROM Courses c
+        JOIN Teachers t ON c.courseID = t.courseID
+        JOIN Users u ON t.teacherID = u.id
+        WHERE t.teacherID = %s
+        ORDER BY c.courseName;
+        """, (current_user.id,))
+    courses = cursor.fetchall()
+    print(courses)
+    return render_template('teacher/myCourses.html', 
+                         courses=courses, 
+                         user_role=current_user.role, 
+                         username=current_user.username)
+
 @app.route('/editMyQuestions', methods=['GET'])
 @login_required
 def editMyQuestions():

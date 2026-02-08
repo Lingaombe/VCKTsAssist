@@ -1,0 +1,30 @@
+{% extends 'poyambira.html' %}
+
+{% block content %}
+    <h1>My Courses</h1>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Course ID</th>
+                <th>Course Name</th>
+                <th>Semester</th>
+                <th>Internal Marks</th>
+                <th>External Marks</th>
+                <th>Practical Marks</th>
+                <!-- [{'subjectID': 'CSC', 'courseID': 'OEL03CSC22', 'courseSem': 'II', 'courseName': 'Introduction to Web-II', 'marksInternal': 10, 'marksExternal': 40, 'marksPractical': 0, 'teacherName': 'mwala'}] -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for course in courses %}
+                <tr>
+                    <td>{{ course.courseID }}</td>
+                    <td>{{ course.courseName }}</td>
+                    <td>{{ course.courseSem }}</td>
+                    <td>{{ course.marksInternal }}</td>
+                    <td>{{ course.marksExternal }}</td>
+                    <td>{{ course.marksPractical }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
