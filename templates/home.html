@@ -21,7 +21,7 @@
                     {% if user_role == 'teacher' %}
                         <p class="card-text">Manage your question banks, upload questions, and generate exam papers for your courses.</p>
                     {% elif user_role == 'hod' %}
-                        <p class="card-text">Oversee department resources, manage courses and teachers, and ensure quality control across all question banks.</p>
+                        <p class="card-text">Oversee {{subject}} department resources, manage courses and teachers, and ensure quality control across all question banks.</p>
                     {% elif user_role == 'examiner' %}
                         <p class="card-text">Review question papers, access cross-departmental resources, and analyze system-wide question bank statistics.</p>
                     {% endif %}

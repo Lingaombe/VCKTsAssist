@@ -128,7 +128,10 @@ def home():
 @app.route('/main')
 @login_required
 def main():
-    return render_template('home.html', username=current_user.username, user_role=current_user.role, subject=current_user.subj)
+    subj = current_user.subj
+    cursor.execute("SELECT subjectName FROM Subjects WHERE subjectID = %s", (subj,))
+    subject = cursor.fetchone()
+    return render_template('home.html', username=current_user.username, user_role=current_user.role, subject=subject['subjectName'])
 
 @app.route('/logout')
 @login_required
@@ -559,24 +562,39 @@ def editCourses():
         flash('Unauthorized access', 'danger')
         return redirect('/main')
     
-    # Get all subjects for dropdown
-    cursor.execute("SELECT * FROM Subjects")
-    subjects = cursor.fetchall()
-    
     # Get all courses with subject names
     cursor.execute("""
         SELECT c.*, s.subjectName 
         FROM Courses c 
         JOIN Subjects s ON c.subjectID = s.subjectID
+        WHERE c.subjectID=%s
         ORDER BY c.courseName
-    """)
+    """, (current_user.subj,))
     courses = cursor.fetchall()
     
+    cursor.execute("""
+        SELECT u.username, u.id as teacherID
+        FROM Teachers t
+        JOIN Users u on t.TeacherID = u.id
+        WHERE u.subjectID = %s
+        """, (current_user.subj,))
+    teachers = cursor.fetchall()
+    print(teachers)
+
+    for course in courses:
+        cursor.execute("""
+            SELECT u.username
+            FROM Teachers t 
+            JOIN Users u ON t.teacherID = u.id 
+            WHERE t.courseID = %s
+        """, (course['courseID'],))
+        teacher = cursor.fetchone()
+        courses[courses.index(course)]['teacher'] = teacher['username'] if teacher else "Unassigned"
+    
     return render_template('hod/manageCourses.html', 
-                         subjects=subjects, 
                          courses=courses,
+                         teachers = teachers,
                          total_courses=len(courses),
-                         total_subjects=len(subjects),
                          department=current_user.subj,
                          username=current_user.username,
                          user_role=current_user.role)
@@ -589,7 +607,7 @@ def addCourse():
         return redirect('/main')
     
     try:
-        subject_id = request.form.get('subject')
+        subject_id = current_user.subj
         course_name = request.form.get('courseName')
         semester = request.form.get('semester')
         marks_internal = request.form.get('marksInternal')
@@ -618,11 +636,12 @@ def editCourseRoute():
     try:
         course_id = request.form.get('courseID')
         course_name = request.form.get('courseName')
-        subject_id = request.form.get('subject')
+        subject_id = current_user.subj
         semester = request.form.get('semester')
         marks_internal = request.form.get('marksInternal')
         marks_external = request.form.get('marksExternal')
         marks_practical = request.form.get('marksPractical')
+        teacherID = request.form.get('teacher')
         
         cursor.execute("""
             UPDATE Courses 
@@ -630,13 +649,20 @@ def editCourseRoute():
             WHERE courseID=%s
         """, (subject_id, course_name, semester, marks_internal, marks_external, marks_practical, course_id))
         conn.commit()
+
+        cursor.execute("""
+            UPDATE Teachers
+            SET teacherID = %s
+            WHERE courseID = %s
+        """, (teacherID, course_id))
+        conn.commit()
         flash(f'Course updated successfully!', 'success')
     except Exception as e:
         flash(f'Error updating course: {str(e)}', 'danger')
     
     return redirect('/editCourses')
 
-@app.route('/deleteCourse/<int:course_id>', methods=['GET'])
+@app.route('/deleteCourse/<course_id>', methods=['GET'])
 @login_required
 def deleteCourse(course_id):
     if current_user.role != 'hod':

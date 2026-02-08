@@ -1,27 +1,19 @@
 {% extends 'poyambira.html' %}
 
+{% block header %}
+    <h1 class="h2">Manage Courses</h1>
+    <b>Course Count: {{ total_courses }}</b>
+{% endblock %}
+
 {% block content %}
 <div class="container my-5">
     <div class="row">
-        <div class="col-md-8">
-            <h2 class="mb-4">Manage Courses</h2>
-            
+        <div class="col-md-8">            
             <!-- Add New Course Section -->
             <div class="card mb-4" style="border-left: 4px solid #007bff;">
                 <div class="card-body">
                     <h5 class="card-title">Add New Course</h5>
                     <form method="POST" action="/addCourse">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="subject" class="form-label">Subject</label>
-                                <select name="subject" id="subject" class="form-select" required>
-                                    <option value="">Select Subject</option>
-                                    {% for subject in subjects %}
-                                        <option value="{{ subject.subjectID }}">{{ subject.subjectName }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="courseName" class="form-label">Course Name</label>
@@ -63,9 +55,11 @@
                         <button type="submit" class="btn btn-primary">Add Course</button>
                     </form>
                 </div>
-            </div>
-
-            <!-- Courses List -->
+            </div> 
+    </div>        
+    </div>
+    <div class="row">
+         <!-- Courses List -->
             <div class="card" style="border-left: 4px solid #007bff;">
                 <div class="card-body">
                     <h5 class="card-title">Existing Courses</h5>
@@ -75,7 +69,7 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th>Course Name</th>
-                                        <th>Subject</th>
+                                        <th>Teacher Assigned</th>
                                         <th>Semester</th>
                                         <th>Marks (Int/Ext/Prac)</th>
                                         <th>Actions</th>
@@ -85,7 +79,7 @@
                                     {% for course in courses %}
                                         <tr>
                                             <td>{{ course.courseName }}</td>
-                                            <td>{{ course.subjectName }}</td>
+                                            <td>{{ course.teacher | capitalize }}</td>
                                             <td>{{ course.courseSem }}</td>
                                             <td>{{ course.marksInternal }}/{{ course.marksExternal }}/{{ course.marksPractical }}</td>
                                             <td>
@@ -105,19 +99,6 @@
                     {% endif %}
                 </div>
             </div>
-        </div>
-
-        <!-- Stats Sidebar -->
-        <div class="col-md-4">
-            <div class="card" style="border-left: 4px solid #28a745;">
-                <div class="card-body">
-                    <h5 class="card-title">Statistics</h5>
-                    <p class="mb-2"><strong>Total Courses:</strong> {{ total_courses }}</p>
-                    <p class="mb-2"><strong>Total Subjects:</strong> {{ total_subjects }}</p>
-                    <p class="mb-0"><strong>Department:</strong> {{ department }}</p>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -137,10 +118,11 @@
                         <input type="text" name="courseName" id="editCourseName" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label for="editSubject" class="form-label">Subject</label>
-                        <select name="subject" id="editSubject" class="form-select" required>
-                            {% for subject in subjects %}
-                                <option value="{{ subject.subjectID }}">{{ subject.subjectName }}</option>
+                        <label for="editTeacher" class="form-label">Teacher</label>
+                        <select name="teacher" id="editTeacher" class="form-select" required>
+                            <option value="">Select Teacher</option>
+                            {% for teacher in teachers %}
+                                <option value="{{ teacher.teacherID }}">{{ teacher.username }}</option>
                             {% endfor %}
                         </select>
                     </div>
