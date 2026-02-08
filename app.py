@@ -1359,7 +1359,7 @@ def editMyQuestions():
     
     # Get only teacher's question banks (from their subject)
     cursor.execute("""
-        SELECT qb.* 
+        SELECT qb.*, c.courseName
         FROM questionBanks qb
         JOIN Courses c ON qb.courseID = c.courseID
         JOIN Teachers t ON c.courseID = t.courseID

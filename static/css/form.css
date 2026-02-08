@@ -1,38 +1,49 @@
 body{
-            background-image: url("/static/assets/bg.jpg");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            margin: 0;
-            display: flex;
-            text-align: center;
-            min-height: 100vh;
-        }
-        .form{
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 200px;
-            margin: auto;
-            border-radius: 10px;
-            backdrop-filter: blur(20px); 
-            -webkit-backdrop-filter: blur(20px);
-        }
-        select{
-            width: 10px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        a{
-            text-decoration: none;
-        }
-        button{
-            width: 50%;
-        }
-        h2{
-            color: white
-        }
+    background-image: url("/static/assets/bg.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    margin: 0;
+    display: flex;
+    text-align: center;
+    min-height: 100vh;
+}
+.form{
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 60vw;
+    margin: auto;
+    border-radius: 10px;
+    backdrop-filter: blur(20px); 
+    -webkit-backdrop-filter: blur(20px);
+}
+@media screen and (orientation: portrait) {
+    .form{
+        width: 90vw;
+    }
+}
+select{
+    width: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+input{
+    width: 80%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+a{
+    text-decoration: none;
+}
+button{
+    width: 50%;
+}
+h2{
+    color: white
+}
 textarea {
   width: 100%;
   height: 150px;

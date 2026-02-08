@@ -25,7 +25,7 @@
         <tbody>
             <!-- [{'courseID': 'OEL03CSC22', 'questionBankID': 1, 'questionBankType': 'mcq', 'questionBankName': 'csc1', 'courseName': 'Introduction to Web-II'}, {'courseID': 'OEL03CSC22', 'questionBankID': 5, 'questionBankType': 'laq', 'questionBankName': 'web1', 'courseName': 'Introduction to Web-II'}] -->
             {% for course in courses %}
-                <tr style="cursor: pointer;" onclick="location.href='/editMyQuestions'" data-toggle="tooltip" data-placement="top" title="View Questions">
+                <tr style="cursor: pointer;" onclick="location.href='/editMyQuestions'" data-toggle="tooltip" data-placement="top" title="View Question Banks">
                     <td>{{ course.courseID }}</td>
                     <td>{{ course.courseName }}</td>
                     <td>{{ course.courseSem }}</td>
