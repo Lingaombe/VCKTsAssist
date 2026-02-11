@@ -59,7 +59,7 @@ def getMCQs(mcqBanksToUse, totalMarks):
     # kutenga ma questionID onse mma Bank nkuaika mu IN clause
     placeholders = ",".join(["%s"] * len(mcqBanksToUse))
 
-    cursor.execute(f"SELECT questionID, questionBankID, questionBody, questionOption1, questionOption2, questionOption3, questionOption4, questionMarks FROM questions WHERE questionBankID IN ({placeholders}) AND questionUsed = FALSE", tuple(mcqBanksToUse)) 
+    cursor.execute(f"SELECT questionID, questionBankID, questionBody, questionGrade, questionUnit, questionOption1, questionOption2, questionOption3, questionOption4, questionMarks FROM questions WHERE questionBankID IN ({placeholders}) AND questionUsed = FALSE", tuple(mcqBanksToUse)) 
 
     availableQuestions = cursor.fetchall()
 
@@ -118,7 +118,9 @@ def getMCQs(mcqBanksToUse, totalMarks):
         if mcqMarks <= 0:
             break
 
-    mcqQuestions.extend(basic, medium, complexQ)
+    mcqQuestions.append(basic)
+    mcqQuestions.append(medium)
+    mcqQuestions.append(complexQ)
     
     if mcqMarks <= 0:
         return mcqQuestions
@@ -131,7 +133,7 @@ def getSAQs(saqBanksToUse, paperStructure, totalMarks):
     # kutenga ma questionID onse mma Bank nkuaika mu IN clause
     placeholders = ",".join(["%s"] * len(saqBanksToUse))
 
-    cursor.execute(f"SELECT questionID, questionBankID, questionBody, questionMarks FROM questions WHERE questionBankID IN ({placeholders}) AND questionUsed = FALSE", tuple(saqBanksToUse)) 
+    cursor.execute(f"SELECT questionID, questionBankID, questionBody, questionGrade, questionUnit, questionMarks FROM questions WHERE questionBankID IN ({placeholders}) AND questionUsed = FALSE", tuple(saqBanksToUse)) 
 
     availableQuestions = cursor.fetchall()
 
@@ -169,7 +171,7 @@ def getSAQs(saqBanksToUse, paperStructure, totalMarks):
 def getLAQs(laqBanksToUse, totalMarks):
     placeholders = ",".join(["%s"] * len(laqBanksToUse))
 
-    cursor.execute(f"SELECT questionID, questionBankID, questionBody, questionMarks FROM questions WHERE questionBankID IN ({placeholders}) AND questionUsed = FALSE", tuple(laqBanksToUse)) 
+    cursor.execute(f"SELECT questionID, questionBankID, questionBody, questionGrade, questionUnit, questionMarks FROM questions WHERE questionBankID IN ({placeholders}) AND questionUsed = FALSE", tuple(laqBanksToUse)) 
 
     availableQuestions = cursor.fetchall()
 

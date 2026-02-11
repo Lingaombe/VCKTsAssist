@@ -481,12 +481,11 @@ def paperGenerated():
     paperSubject = request.form.get("subject")
     paperSemester = request.form.get("semester")
     paperCourse = request.form.get("course")
+    paperStructure = request.form.get("marks")
     checkedQuestionBanks = [int(bank) for bank in request.form.getlist("bankNames")]
     if not checkedQuestionBanks:
         flash("Choose atleast one bank")
         return redirect("/generatePaper")
-
-    paperStructure = request.form.get("marks")
 
     cursor.execute("SELECT * FROM courses where courseID=%s;", (paperCourse,))
     paper = cursor.fetchone()
@@ -535,22 +534,21 @@ def paperGenerated():
             flash("not enough questions in database")
             return redirect("/addQuestionBank")
         else:
-            return render_template("paperGenerated.html", paperDetails=paperDetails, mcqQuestions=mcqQuestions, saqQuestions=saqQuestions, laqQuestions=laqQuestions)
-
+            return render_template("BSc.html", paperDetails=paperDetails, mcqQuestions=mcqQuestions, saqQuestions=saqQuestions, laqQuestions=laqQuestions) 
 
     elif paperStructure == "EXT":
         if not mcqQuestions or not saqQuestions or not laqQuestions:
             flash("not enough questions in database")
             return redirect("/addQuestionBank")
         else:
-            return render_template("paperGenerated.html", paperDetails=paperDetails, mcqQuestions=mcqQuestions, saqQuestions=saqQuestions, laqQuestions=laqQuestions)
+            return render_template("BSc.html", paperDetails=paperDetails, mcqQuestions=mcqQuestions, saqQuestions=saqQuestions, laqQuestions=laqQuestions)
         
     elif paperStructure == "PR":
         if not saqQuestions or not laqQuestions:
             flash("not enough questions in database")
             return redirect("/addQuestionBank")
         else:
-            return render_template("paperGenerated.html", paperDetails=paperDetails, mcqQuestions=mcqQuestions, saqQuestions=saqQuestions, laqQuestions=laqQuestions)
+            return render_template("BSc.html", paperDetails=paperDetails, mcqQuestions=mcqQuestions, saqQuestions=saqQuestions, laqQuestions=laqQuestions)
 
 
 # ============= HOD =============
