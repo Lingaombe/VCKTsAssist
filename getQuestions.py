@@ -1,41 +1,15 @@
+from unittest import case
 from flask import *
+from assemble import *
+from app import *
 import pandas as pd
-from dotenv import load_dotenv
 import os
-
-load_dotenv() 
-
+import random
 import mysql.connector
+
 conn = mysql.connector.connect(host="localhost", user="root", password="Lingaombe@2001", database="VCKTsAssist") 
 cursor = conn.cursor(dictionary=True)
 
-
-if conn.is_connected():
-    print("Successfully connected to the database")
-
-app = Flask(__name__)
-app.secret_key = os.getenv("secretKey")
-
-import random
-
-def errorCheck():
-    print("Connected")
-
-def assemblePaper(totalMarks, checkedQuestionBanks, paperStructure):
-    mcqBanksToUse, saqBanksToUse, laqBanksToUse = banksToUse(checkedQuestionBanks)
-    mcqs = []
-    saqs = []
-    laqs = []
-    if mcqBanksToUse:
-        mcqs = getMCQs(mcqBanksToUse, totalMarks) #tilandira list
-    if saqBanksToUse:
-        saqs = getSAQs(saqBanksToUse, paperStructure, totalMarks)
-    if laqBanksToUse and paperStructure in ["PR", "EXT"]:
-        laqs = getLAQs(laqBanksToUse, totalMarks)
-    
-    return mcqs, saqs, laqs
-
-    
 def banksToUse(checkedQuestionBanks):
     mcqBanksToUse = []
     saqBanksToUse = []
@@ -54,8 +28,7 @@ def banksToUse(checkedQuestionBanks):
                 laqBanksToUse.append(bank["questionBankID"])
     return mcqBanksToUse, saqBanksToUse, laqBanksToUse #imbwera ngati tuple ya questionBankID
 
-def getMCQs(mcqBanksToUse, totalMarks):
-    mcqMarks = totalMarks // 5 #ikakhala out of 10 marks 2MCQ, 20 4MCQ, 40 8MCQ
+def getMCQs(mcqBanksToUse, questionNum):
     # kutenga ma questionID onse mma Bank nkuaika mu IN clause
     placeholders = ",".join(["%s"] * len(mcqBanksToUse))
 
@@ -72,8 +45,8 @@ def getMCQs(mcqBanksToUse, totalMarks):
     random.shuffle(availableQuestions)
 
     for question in availableQuestions:
-        print(mcqMarks)
-        if question["questionMarks"] <= mcqMarks:
+        print(questionNum)
+        if question["questionMarks"] <= questionNum:
             if question["questionGrade"] == "A":
                 basic.append({
                 "questionBody" : question["questionBody"], 
@@ -105,8 +78,8 @@ def getMCQs(mcqBanksToUse, totalMarks):
             #     "option3" : question["questionOption3"],
             #     "option4" : question["questionOption4"]
             # })
-            mcqMarks -= question["questionMarks"]
-            print(mcqMarks)
+            questionNum -= question["questionMarks"]
+            print(questionNum)
 
             # funso yagwiritsidwa ntchito
             cursor.execute(
@@ -115,20 +88,19 @@ def getMCQs(mcqBanksToUse, totalMarks):
             )
             conn.commit()
 
-        if mcqMarks <= 0:
+        if questionNum <= 0:
             break
 
     mcqQuestions.append(basic)
     mcqQuestions.append(medium)
     mcqQuestions.append(complexQ)
     
-    if mcqMarks <= 0:
+    if questionNum <= 0:
         return mcqQuestions
     else:
         return []
 
-def getSAQs(saqBanksToUse, paperStructure, totalMarks):
-    #ikakhale INT 4 kusankha 2, EXT 6 kusankha 4
+def getSAQs(saqBanksToUse, questionNum):
 
     # kutenga ma questionID onse mma Bank nkuaika mu IN clause
     placeholders = ",".join(["%s"] * len(saqBanksToUse))
@@ -142,15 +114,10 @@ def getSAQs(saqBanksToUse, paperStructure, totalMarks):
     # mafunso asakhale mu order yomwe ili mu table
     random.shuffle(availableQuestions)
 
-    if paperStructure == "INT":
-        saqMarks = ((totalMarks*4)//5) + 8  #abwere mafunso 4 kusankha awiri, 6 kusankha 4
-    elif paperStructure == "EXT":
-        saqMarks = ((totalMarks*2)//5) + 8  #abwere mafunso 6 kusankha anayi
-
     for question in availableQuestions:
-        if question["questionMarks"] <= saqMarks:
+        if question["questionMarks"] <= questionNum:
             saqQuestions.append(question["questionBody"])
-            saqMarks -= question["questionMarks"]
+            questionNum -= question["questionMarks"]
 
             # funso yagwiritsidwa ntchito
             cursor.execute(
@@ -159,16 +126,16 @@ def getSAQs(saqBanksToUse, paperStructure, totalMarks):
             )
             conn.commit()
 
-        if saqMarks <= 0:
+        if questionNum <= 0:
             break
 
-    if saqMarks <= 0:
+    if questionNum <= 0:
         return saqQuestions
     else:
         return []
 
 
-def getLAQs(laqBanksToUse, totalMarks):
+def getLAQs(laqBanksToUse, questionNum):
     placeholders = ",".join(["%s"] * len(laqBanksToUse))
 
     cursor.execute(f"SELECT questionID, questionBankID, questionBody, questionGrade, questionUnit, questionMarks FROM questions WHERE questionBankID IN ({placeholders}) AND questionUsed = FALSE", tuple(laqBanksToUse)) 
@@ -177,16 +144,14 @@ def getLAQs(laqBanksToUse, totalMarks):
 
     laqquestions = []
 
-    laqMarks = ((totalMarks*4)//5) + 8
-
     # mafunso asakhale mu order yomwe ili mu table
     random.shuffle(availableQuestions)
 
 
     for question in availableQuestions:
-        if question["questionMarks"] <= laqMarks:
+        if question["questionMarks"] <= questionNum:
             laqquestions.append(question["questionBody"])
-            laqMarks -= question["questionMarks"]
+            questionNum -= question["questionMarks"]
 
             # funso yagwiritsidwa ntchito
             cursor.execute(
@@ -195,14 +160,10 @@ def getLAQs(laqBanksToUse, totalMarks):
             )
             conn.commit()
 
-        if laqMarks <= 0:
+        if questionNum <= 0:
             break
 
-    if laqMarks <= 0:
+    if questionNum <= 0:
         return laqquestions
     else:
         return []
-
-# bca
-# bcom
-# ba

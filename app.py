@@ -1,7 +1,9 @@
+from unittest import case
 from flask import *
 from flask_login import *
 from passlib.hash import sha256_crypt
-from utils import *
+from assemble import *
+from getQuestions import *
 import pandas as pd
 from dotenv import load_dotenv
 import os
@@ -11,6 +13,7 @@ from openpyxl import load_workbook
 import secrets
 import smtplib
 from datetime import datetime, timedelta
+from getQuestions import *
 
 load_dotenv() 
 
@@ -496,10 +499,13 @@ def paperGenerated():
     try:
         if paperStructure == "INT":
             totalMarks = paper["marksInternal"]
+        
         elif paperStructure == "EXT":
             totalMarks = paper["marksExternal"]
+
         elif paperStructure == "PR":
             totalMarks = paper["marksPractical"]
+
         else:
             flash("Invalid paper structure")
             return redirect("/generatePaper")
@@ -507,7 +513,20 @@ def paperGenerated():
         flash(f"Error retrieving marks: {str(e)}")
         return redirect("/generatePaper")
         
-    mcqQuestions, saqQuestions, laqQuestions = assemblePaper(totalMarks, checkedQuestionBanks, paperStructure)
+    match paperStream:
+        case "100" | "106": #bsc, bca ndi bcs onse structure yofanana
+            mcqQuestions, saqQuestions, laqQuestions = assembleBSc(totalMarks, checkedQuestionBanks, paperStructure)
+        case "101": #bcom...similar to mcom onse 80
+            mcqQuestions, saqQuestions, laqQuestions = assembleBCom(totalMarks, checkedQuestionBanks, paperStructure)
+        case  "102": #bca
+            mcqQuestions, saqQuestions, laqQuestions = assembleBCA(totalMarks, checkedQuestionBanks, paperStructure)
+        case "103": #ba...similar to ma
+            mcqQuestions, saqQuestions, laqQuestions = assembleBA(totalMarks, checkedQuestionBanks, paperStructure)
+        case "104": #bba...similar to mba
+            mcqQuestions, saqQuestions, laqQuestions = assembleBBA(totalMarks, checkedQuestionBanks, paperStructure)
+        case "105": #bvoc
+            mcqQuestions, saqQuestions, laqQuestions = assembleBVoc(totalMarks, checkedQuestionBanks, paperStructure)
+    
 
     errorCheck()
     cursor.execute("SELECT streamName FROM Streams WHERE streamID=%s;", (paperStream,))
@@ -534,21 +553,21 @@ def paperGenerated():
             flash("not enough questions in database")
             return redirect("/addQuestionBank")
         else:
-            return render_template("BSc.html", paperDetails=paperDetails, mcqQuestions=mcqQuestions, saqQuestions=saqQuestions, laqQuestions=laqQuestions) 
+            return render_template("paperGenerated.html", paperDetails=paperDetails, mcqQuestions=mcqQuestions, saqQuestions=saqQuestions, laqQuestions=laqQuestions) 
 
     elif paperStructure == "EXT":
         if not mcqQuestions or not saqQuestions or not laqQuestions:
             flash("not enough questions in database")
             return redirect("/addQuestionBank")
         else:
-            return render_template("BSc.html", paperDetails=paperDetails, mcqQuestions=mcqQuestions, saqQuestions=saqQuestions, laqQuestions=laqQuestions)
+            return render_template("paperGenerated.html", paperDetails=paperDetails, mcqQuestions=mcqQuestions, saqQuestions=saqQuestions, laqQuestions=laqQuestions)
         
     elif paperStructure == "PR":
         if not saqQuestions or not laqQuestions:
             flash("not enough questions in database")
             return redirect("/addQuestionBank")
         else:
-            return render_template("BSc.html", paperDetails=paperDetails, mcqQuestions=mcqQuestions, saqQuestions=saqQuestions, laqQuestions=laqQuestions)
+            return render_template("paperGenerated.html", paperDetails=paperDetails, mcqQuestions=mcqQuestions, saqQuestions=saqQuestions, laqQuestions=laqQuestions)
 
 
 # ============= HOD =============
