@@ -34,22 +34,15 @@
                             <p class="fs-5">
                                 <span class="badge" 
                                     {% if user.role == 'teacher' %}
-                                        style="background-color: #28a745;"
+                                        style="background-color: #007bff;"
                                     {% elif user.role == 'examiner' %}
                                         style="background-color: #007bff;"
                                     {% elif user.role == 'hod' %}
-                                        style="background-color: #dc3545;"
+                                        style="background-color: #007bff;"
                                     {% endif %}>
                                     {{ user.role | upper }}
                                 </span>
                             </p>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <h6 class="text-muted">Member Since</h6>
-                            <p class="fs-5"><strong>{{ member_since }}</strong></p>
                         </div>
                     </div>
                 </div>

@@ -6,6 +6,7 @@ import pandas as pd
 import os
 import random
 import mysql.connector
+from dotenv import load_dotenv
 
 load_dotenv() 
 
