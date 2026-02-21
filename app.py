@@ -486,6 +486,8 @@ def paperGenerated():
     paperCourse = request.form.get("course")
     paperStructure = request.form.get("marks")
     checkedQuestionBanks = [int(bank) for bank in request.form.getlist("bankNames")]
+    instructions = request.form.get("instructions").split('\n')
+    print(f"instructions: {instructions}")
     if not checkedQuestionBanks:
         flash("Choose atleast one bank")
         return redirect("/generatePaper")
@@ -513,8 +515,8 @@ def paperGenerated():
         flash(f"Error retrieving marks: {str(e)}")
         return redirect("/generatePaper")
         
-    match paperStream:
-        case "100" | "106": #bsc, bca ndi bcs onse structure yofanana
+    match paperStream: 
+        case "100" | "106": #bsc, bcs onse structure yofanana
             mcqQuestions, saqQuestions, laqQuestions = assembleBSc(totalMarks, checkedQuestionBanks, paperStructure)
         case "101": #bcom...similar to mcom onse 80
             mcqQuestions, saqQuestions, laqQuestions = assembleBCom(totalMarks, checkedQuestionBanks, paperStructure)
@@ -546,7 +548,7 @@ def paperGenerated():
 
     paperDetails = [
         paperStream, paperSubject, paperSemester, paperCourse, 
-        paperStructure, totalMarks, paperYear, paperCode
+        paperStructure, totalMarks, paperYear, paperCode, instructions
     ]
     if paperStructure == "INT":
         if not mcqQuestions or not saqQuestions:

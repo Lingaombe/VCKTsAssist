@@ -23,17 +23,21 @@ app.secret_key = os.getenv("secretKey")
 def errorCheck():
     print("Connected")
 
-def assemblePaper(totalMarks, checkedQuestionBanks, paperStructure):
-    mcqBanksToUse, saqBanksToUse, laqBanksToUse = banksToUse(checkedQuestionBanks)
+def assemblePaper(mcqNum, saqNum, laqNum, checkedQuestionBanks, paperStructure):
+    mcqBanksToUse, saqBanksToUse, laqBanksToUse = banksToUse(checkedQuestionBanks) 
+    print(f"MCQ banks to use: {mcqBanksToUse}")
+    print(f"SAQ banks to use: {saqBanksToUse}")
+    print(f"LAQ banks to use: {laqBanksToUse}")
     mcqs = []
     saqs = []
     laqs = []
-    if mcqBanksToUse:
-        mcqs = getMCQs(mcqBanksToUse, totalMarks) #tilandira list
+    if mcqBanksToUse: 
+        print(mcqBanksToUse)
+        mcqs = getMCQs(mcqBanksToUse, mcqNum) #tilandira list
     if saqBanksToUse:
-        saqs = getSAQs(saqBanksToUse, paperStructure, totalMarks)
+        saqs = getSAQs(saqBanksToUse, saqNum)
     if laqBanksToUse and paperStructure in ["PR", "EXT"]:
-        laqs = getLAQs(laqBanksToUse, totalMarks)
+        laqs = getLAQs(laqBanksToUse, laqNum)
     
     return mcqs, saqs, laqs
 
@@ -42,21 +46,14 @@ def assembleBSc(totalMarks, checkedQuestionBanks, paperStructure): #"INT", "EXT"
         case "INT":
             mcqNum = 2
             saqNum = 4
+            laqNum = 0
         case "EXT":
             mcqNum = 8
             saqNum = 6
             laqNum = 3
-    mcqBanksToUse, saqBanksToUse, laqBanksToUse = banksToUse(checkedQuestionBanks)
-    mcqs = []
-    saqs = []
-    laqs = []
-    if mcqBanksToUse:
-        mcqs = getMCQs(mcqBanksToUse, mcqNum) #tilandira list
-    if saqBanksToUse:
-        saqs = getSAQs(saqBanksToUse, paperStructure, saqNum)
-    if laqBanksToUse and paperStructure in ["PR", "EXT"]:
-        laqs = getLAQs(laqBanksToUse, laqNum)
-    
+
+    mcqs, saqs, laqs = assemblePaper(mcqNum, saqNum, laqNum, checkedQuestionBanks, paperStructure)
+
     return mcqs, saqs, laqs
 
 def assembleBCom(totalMarks, checkedQuestionBanks, paperStructure): #trueFalseQuestions extend mcqs
@@ -64,6 +61,7 @@ def assembleBCom(totalMarks, checkedQuestionBanks, paperStructure): #trueFalseQu
         case "INT":
             mcqNum = 2
             saqNum = 4
+            laqNum = 0
         case "EXT":
             mcqNum = 10
             tfNum = 6
@@ -76,6 +74,7 @@ def assembleBCA(totalMarks, checkedQuestionBanks, paperStructure):
         case "INT":
             mcqNum = 2
             saqNum = 4
+            laqNum = 0
         case "EXT":
             mcqNum = 5
             saqNum = 6
@@ -86,6 +85,7 @@ def assembleBA(totalMarks, checkedQuestionBanks, paperStructure):
         case "INT":
             mcqNum = 2
             saqNum = 4
+            laqNum = 0
         case "EXT":
             mcqNum = 10
             saqNum = 7
@@ -96,6 +96,7 @@ def assembleBBA(totalMarks, checkedQuestionBanks, paperStructure):
         case "INT":
             mcqNum = 2
             saqNum = 4
+            laqNum = 0
         case "EXT":
             mcqNum = 8
             saqNum = 6
@@ -106,6 +107,7 @@ def assembleBVoc(totalMarks, checkedQuestionBanks, paperStructure):
         case "INT":
             mcqNum = 2
             saqNum = 4
+            laqNum = 0
         case "EXT":
             mcqNum = 8
             saqNum = 6

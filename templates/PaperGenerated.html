@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/main.css">
+    <title>Generated Paper</title>
+
+    <style>
+        body{
+            margin: 20px;
+        }
+        th, td {
+            border: 1px solid black;
+            column-width: 100px;
+        }
+        .header{
+            display: grid;
+            grid-template-columns: 300px 300px;
+            gap: 30vw;
+        }
+        .dets{
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="paper">
+        <div class="header">
+            <table>
+                <tr>
+                    <td><p>Seat No.</p></td>
+                    <td><p></p></td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td><p>Ques. Paper Code</p></td>
+                    <td><p></p></td>
+                </tr>
+            </table>
+        </div>
+        <br>
+        <div class="dets">
+            <p><b>VIVEKANAND COLLEGE, KOLHAPUR</b></p>
+            <p>(AN EMPOWERED AUTONOMOUS INSTITUTE)</p>
+            <p>B.Sc. Part {{paperDetails[6]}} ({{paperDetails[1]}}) (Semester-{{paperDetails[2]}}) Examination:________________________</p>
+            <p>Course Code and Name: <b>{{paperDetails[7]}}: {{paperDetails[3]}}</b></p>
+        </div>
+        
+        <div class="header">
+            <div class="day">
+                <p>Day:</p>
+                <p>Date:</p>
+            </div>
+            <div class="duration">
+                <p>Time:</p>
+                <p>Marks: {{paperDetails[5]}}</p>
+            </div>
+        </div>
+        <div class="inst">
+            <p><b>Instructions:</b></p>
+            <ol>
+                {% for i in paperDetails[8] %}
+                    <li>{{i}}</li>
+                {% endfor %}
+            </ol>
+        </div>
+
+        <div class="body">
+            <p><b>Q.1. Select correct alternative (One mark each):</b></p>
+            {% set i=0 %}
+            {% for mcq in mcqQuestions %}
+                <li class="question">{{mcq["questionBody"] | safe}}</li> 
+                <ol class="mcqs">
+                    <li>{{mcq["option1"] | safe}}</li>
+                    <li>{{mcq["option2"] | safe}}</li>
+                    <li>{{mcq["option3"] | safe}}</li>
+                    <li>{{mcq["option4"] | safe}}</li>
+                </ol>
+            {% endfor %}
+            <br>
+            {% if paperDetails[4] == "EXT" %}
+                <p><b>Attempt any TWO (Eight marks each):</b></p>
+                {% for laq in laqQuestions %}
+                    <li class="question">{{laq | safe}}</li>
+                {% endfor %}
+            {% endif %}
+            <br>
+            {% if paperDetails[4] == "INT" %}
+                <p><b>Attempt any TWO (Four marks each):</b></p>
+            {% elif paperDetails[4] == "EXT" %}
+                <p><b>Attempt any FOUR (Four marks each):</b></p>
+            {% endif %}
+            {% for saq in saqQuestions %}
+                <li class="question">{{saq | safe}}</li>
+            {% endfor %}
+            <br>
+            
+        </div>
+    </div>
+    <button onclick="Print()" id="btn">Print Paper</button>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/script.js"></script>
+<script>
+    function Print(){
+        let btn = document.getElementById("btn");
+        btn.style.display = 'none';
+        window.print();
+        btn.style.display = 'block';
+    }
+</script>
+</html>
