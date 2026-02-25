@@ -106,7 +106,7 @@ def home():
         password_candidate = request.form['password']
                 
         # Get user by email
-        result = cursor.execute("SELECT * FROM Users WHERE email = %s", (mail,))
+        cursor.execute("SELECT * FROM Users WHERE email = %s", (mail,))
         data = cursor.fetchone()
         print(data)
         
@@ -122,7 +122,7 @@ def home():
                 return redirect('/main')
             else:
                 flash('Invalid password', 'danger')
-                return redirect('/')
+                return render_template('login.html', mail=mail)
         else:
             flash('User not found', 'danger')
             return redirect('/')
