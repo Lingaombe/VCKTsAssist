@@ -68,7 +68,9 @@ def assembleBCom(totalMarks, checkedQuestionBanks, paperStructure): #trueFalseQu
             tfNum = 6
             saqNum = 3
             laqNum = 4
-    mcqBanksToUse, saqBanksToUse, laqBanksToUse = banksToUse(checkedQuestionBanks)
+    mcqs, saqs, laqs = assemblePaper(mcqNum, saqNum, laqNum, checkedQuestionBanks, paperStructure)
+
+    return mcqs, saqs, laqs
 
 def assembleBCA(totalMarks, checkedQuestionBanks, paperStructure): 
     match paperStructure:
@@ -80,6 +82,9 @@ def assembleBCA(totalMarks, checkedQuestionBanks, paperStructure):
             mcqNum = 5
             saqNum = 6
             laqNum = 3
+    mcqs, saqs, laqs = assemblePaper(mcqNum, saqNum, laqNum, checkedQuestionBanks, paperStructure)
+
+    return mcqs, saqs, laqs
 
 def assembleBA(totalMarks, checkedQuestionBanks, paperStructure):
     match paperStructure:
@@ -91,6 +96,9 @@ def assembleBA(totalMarks, checkedQuestionBanks, paperStructure):
             mcqNum = 10
             saqNum = 7
             laqNum = 5
+    mcqs, saqs, laqs = assemblePaper(mcqNum, saqNum, laqNum, checkedQuestionBanks, paperStructure)
+
+    return mcqs, saqs, laqs
 
 def assembleBBA(totalMarks, checkedQuestionBanks, paperStructure):
     match paperStructure:
@@ -102,6 +110,9 @@ def assembleBBA(totalMarks, checkedQuestionBanks, paperStructure):
             mcqNum = 8
             saqNum = 6
             laqNum = 3
+    mcqs, saqs, laqs = assemblePaper(mcqNum, saqNum, laqNum, checkedQuestionBanks, paperStructure)
+
+    return mcqs, saqs, laqs
 
 def assembleBVoc(totalMarks, checkedQuestionBanks, paperStructure): 
     match paperStructure:
@@ -113,3 +124,6 @@ def assembleBVoc(totalMarks, checkedQuestionBanks, paperStructure):
             mcqNum = 8
             saqNum = 6
             laqNum = 3
+    mcqs, saqs, laqs = assemblePaper(mcqNum, saqNum, laqNum, checkedQuestionBanks, paperStructure)
+
+    return mcqs, saqs, laqs

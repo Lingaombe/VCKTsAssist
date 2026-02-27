@@ -517,7 +517,7 @@ def paperGenerated():
         
     match paperStream: 
         case "100" | "106": #bsc, bcs onse structure yofanana
-            mcqQuestions, saqQuestions, laqQuestions = assembleBSc(totalMarks, checkedQuestionBanks, paperStructure)
+            mcqQuestions, saqQuestions, laqQuestions = assembleBSc(totalMarks, checkedQuestionBanks, paperStructure) 
         case "101": #bcom...similar to mcom onse 80
             mcqQuestions, saqQuestions, laqQuestions = assembleBCom(totalMarks, checkedQuestionBanks, paperStructure)
         case  "102": #bca

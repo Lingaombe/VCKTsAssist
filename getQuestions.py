@@ -51,7 +51,7 @@ def getMCQs(mcqBanksToUse, questionNum):
     while questionNum > 0 and availableQuestions:
         for question in availableQuestions:
             print(questionNum)
-            if question["questionGrade"] == "A" or question["questionGrade"] == "a":
+            if question["questionGrade"] == "A" or question["questionGrade"] == "a" and len(basic) < qNum//3:
                 basic.append({
                 "questionBody" : question["questionBody"], 
                 "option1" : question["questionOption1"], 
@@ -62,7 +62,7 @@ def getMCQs(mcqBanksToUse, questionNum):
                 questionNum -= 1
                 cursor.execute("UPDATE questions SET questionUsed = TRUE WHERE questionID=%s", (question["questionID"],))
                 conn.commit()
-            elif question["questionGrade"] == "B" or question["questionGrade"] == "b":
+            elif question["questionGrade"] == "B" or question["questionGrade"] == "b" and len(medium) < qNum//3:
                 medium.append({
                 "questionBody" : question["questionBody"], 
                 "option1" : question["questionOption1"], 
@@ -73,7 +73,7 @@ def getMCQs(mcqBanksToUse, questionNum):
                 questionNum -= 1
                 cursor.execute("UPDATE questions SET questionUsed = TRUE WHERE questionID=%s", (question["questionID"],))
                 conn.commit()
-            elif question["questionGrade"] == "C" or question["questionGrade"] == "c":
+            elif question["questionGrade"] == "C" or question["questionGrade"] == "c" and len(complexQ) < qNum//3:
                 complexQ.append({
                 "questionBody" : question["questionBody"], 
                 "option1" : question["questionOption1"], 
@@ -117,12 +117,15 @@ def getSAQs(saqBanksToUse, questionNum):
 
     # kutenga ma questionID onse mma Bank nkuaika mu IN clause
     placeholders = ",".join(["%s"] * len(saqBanksToUse))
-
+    qNum = questionNum
     cursor.execute(f"SELECT questionID, questionBankID, questionBody, questionGrade, questionUnit, questionMarks FROM questions WHERE questionBankID IN ({placeholders}) AND questionUsed = FALSE", tuple(saqBanksToUse)) 
 
     availableQuestions = cursor.fetchall()
 
     saqQuestions = []
+    basic =[]
+    medium = []
+    complexQ = []
 
     # mafunso asakhale mu order yomwe ili mu table
     random.shuffle(availableQuestions)
@@ -130,52 +133,79 @@ def getSAQs(saqBanksToUse, questionNum):
     while questionNum > 0 and availableQuestions:
         for question in availableQuestions:
             print(questionNum)
-            saqQuestions.append(question["questionBody"])
-            questionNum -= 1
-
-            # funso yagwiritsidwa ntchito
-            cursor.execute(
-                "UPDATE questions SET questionUsed = TRUE WHERE questionID=%s",
-                (question["questionID"],)
-            )
-            conn.commit()
-
+            if question["questionGrade"] == "A" or question["questionGrade"] == "a" and len(basic) < qNum//3:
+                basic.append(question["questionBody"])
+                questionNum -= 1
+                cursor.execute("UPDATE questions SET questionUsed = TRUE WHERE questionID=%s", (question["questionID"],))
+                conn.commit()
+            elif question["questionGrade"] == "B" or question["questionGrade"] == "b" and len(medium) < qNum//3:
+                medium.append(question["questionBody"])
+                questionNum -= 1
+                cursor.execute("UPDATE questions SET questionUsed = TRUE WHERE questionID=%s", (question["questionID"],))
+                conn.commit()
+            elif question["questionGrade"] == "C" or question["questionGrade"] == "c" and len(complexQ) < qNum//3:
+                complexQ.append(question["questionBody"])
+                questionNum -= 1
+                cursor.execute("UPDATE questions SET questionUsed = TRUE WHERE questionID=%s", (question["questionID"],))
+                conn.commit()
             if questionNum <= 0:
                 break
-        print(f"saqs at end of loop: {saqQuestions}")
+
+    print(f"basic: {basic}")
+    print(f"medium: {medium}")
+    print(f"complex: {complexQ}")
+    saqQuestions.extend(basic)
+    saqQuestions.extend(medium)
+    saqQuestions.extend(complexQ)
+
+    print(f"final qs: {saqQuestions}")
 
     return saqQuestions
 
 
 def getLAQs(laqBanksToUse, questionNum):
     placeholders = ",".join(["%s"] * len(laqBanksToUse))
-
+    qNum = questionNum
     cursor.execute(f"SELECT questionID, questionBankID, questionBody, questionGrade, questionUnit, questionMarks FROM questions WHERE questionBankID IN ({placeholders}) AND questionUsed = FALSE", tuple(laqBanksToUse)) 
 
     availableQuestions = cursor.fetchall()
 
-    laqquestions = []
+    laqQuestions = []
+    basic =[]
+    medium = []
+    complexQ = []
 
     # mafunso asakhale mu order yomwe ili mu table
     random.shuffle(availableQuestions)
 
+    while questionNum > 0 and availableQuestions:
+        for question in availableQuestions:
+            print(questionNum)
+            if question["questionGrade"] == "A" or question["questionGrade"] == "a" and len(basic) < qNum//3:
+                basic.append(question["questionBody"])
+                questionNum -= 1
+                cursor.execute("UPDATE questions SET questionUsed = TRUE WHERE questionID=%s", (question["questionID"],))
+                conn.commit()
+            elif question["questionGrade"] == "B" or question["questionGrade"] == "b" and len(medium) < qNum//3:
+                medium.append(question["questionBody"])
+                questionNum -= 1
+                cursor.execute("UPDATE questions SET questionUsed = TRUE WHERE questionID=%s", (question["questionID"],))
+                conn.commit()
+            elif question["questionGrade"] == "C" or question["questionGrade"] == "c" and len(complexQ) < qNum//3:
+                complexQ.append(question["questionBody"])
+                questionNum -= 1
+                cursor.execute("UPDATE questions SET questionUsed = TRUE WHERE questionID=%s", (question["questionID"],))
+                conn.commit()
+            if questionNum <= 0:
+                break
 
-    for question in availableQuestions:
-        if question["questionMarks"] <= questionNum:
-            laqquestions.append(question["questionBody"])
-            questionNum -= question["questionMarks"]
+    print(f"basic: {basic}")
+    print(f"medium: {medium}")
+    print(f"complex: {complexQ}")
+    laqQuestions.extend(basic)
+    laqQuestions.extend(medium)
+    laqQuestions.extend(complexQ)
 
-            # funso yagwiritsidwa ntchito
-            cursor.execute(
-                "UPDATE questions SET questionUsed = TRUE WHERE questionID=%s",
-                (question["questionID"],)
-            )
-            conn.commit()
+    print(f"final qs: {laqQuestions}")
 
-        if questionNum <= 0:
-            break
-
-    if questionNum <= 0:
-        return laqquestions
-    else:
-        return []
+    return laqQuestions
