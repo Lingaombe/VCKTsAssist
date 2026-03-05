@@ -64,8 +64,7 @@ def assembleBCom(totalMarks, checkedQuestionBanks, paperStructure): #trueFalseQu
             saqNum = 4
             laqNum = 0
         case "EXT":
-            mcqNum = 10
-            tfNum = 6
+            mcqNum = 16
             saqNum = 3
             laqNum = 4
     mcqs, saqs, laqs = assemblePaper(mcqNum, saqNum, laqNum, checkedQuestionBanks, paperStructure)

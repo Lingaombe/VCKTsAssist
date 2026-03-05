@@ -33,6 +33,10 @@ def getMCQs(mcqBanksToUse, questionNum):
     # kutenga ma questionID onse mma Bank nkuaika mu IN clause
     placeholders = ",".join(["%s"] * len(mcqBanksToUse))
     qNum = questionNum
+    if qNum == 16:
+        tfNum = 6
+        qNum = 10
+        questionNum = 10
 
     cursor.execute(f"SELECT questionID, questionBankID, questionBody, questionGrade, questionUnit, questionOption1, questionOption2, questionOption3, questionOption4, questionMarks FROM questions WHERE questionBankID IN ({placeholders}) AND questionUsed = FALSE", tuple(mcqBanksToUse)) 
 
@@ -43,9 +47,26 @@ def getMCQs(mcqBanksToUse, questionNum):
     basic =[]
     medium = []
     complexQ = []
+    if tfNum > 0:
+        tfQuestions = []
+        cursor.execute(f"SELECT questionID, questionBankID, questionBody, questionGrade, questionUnit, questionMarks FROM questions WHERE questionBankID IN ({placeholders}) AND questionUsed = FALSE AND isTrueFalse = TRUE", tuple(mcqBanksToUse))
+        availableTFQuestions = cursor.fetchall()
+        random.shuffle(availableTFQuestions)
+        while tfNum > 0 and availableTFQuestions:
+            question = availableTFQuestions.pop()
+            tfQuestions.append({
+                "questionBody" : question["questionBody"],
+                "questionGrade" : question["questionGrade"],
+                "questionUnit" : question["questionUnit"],
+                "questionMarks" : question["questionMarks"]
+            })
+            tfNum -= 1
+            cursor.execute("UPDATE questions SET questionUsed = TRUE WHERE questionID=%s", (question["questionID"],))
+            conn.commit()
 
     # mafunso asakhale mu order yomwe ili mu table
     random.shuffle(availableQuestions)
+
     print(f"Available qs after shuffle: {availableQuestions}")
 
     while questionNum > 0 and availableQuestions:
