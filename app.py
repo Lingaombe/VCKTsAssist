@@ -436,6 +436,7 @@ def submitQuestion():
     questionMarks = int(request.form.get("marks"))
     questionGrade = request.form.get("difficulty")
     questionUnit = request.form.get("unit")
+
     
     # Handle file upload
     photo_filename = None
@@ -455,12 +456,13 @@ def submitQuestion():
     
     try:
         if questionBankType == "mcq":
+            isTrueFalse =  int(request.form.get("isTrueFalse", 0))
             option1 = request.form.get("option1")
             option2 = request.form.get("option2")
             option3 = request.form.get("option3")
             option4 = request.form.get("option4")
-            cursor.execute("INSERT INTO questions (questionBankID, questionBody, questionGrade, questionPhoto, questionUnit, questionOption1, questionOption2, questionOption3, questionOption4, questionMarks) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);", 
-                           (questionBankID, questionBody, questionGrade, photo_filename, questionUnit, option1, option2, option3, option4, questionMarks))
+            cursor.execute("INSERT INTO questions (questionBankID, questionBody, questionGrade, questionPhoto, questionUnit, questionOption1, questionOption2, questionOption3, questionOption4, questionMarks, isTrueFalse) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);", 
+                           (questionBankID, questionBody, questionGrade, photo_filename, questionUnit, option1, option2, option3, option4, questionMarks, isTrueFalse))
             conn.commit()
             flash("MCQ question added!")
             return redirect("/addMcqQuestions")

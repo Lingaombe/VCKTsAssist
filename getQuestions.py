@@ -37,6 +37,8 @@ def getMCQs(mcqBanksToUse, questionNum):
         tfNum = 6
         qNum = 10
         questionNum = 10
+    else:
+        tfNum = 0
 
     cursor.execute(f"SELECT questionID, questionBankID, questionBody, questionGrade, questionUnit, questionOption1, questionOption2, questionOption3, questionOption4, questionMarks FROM questions WHERE questionBankID IN ({placeholders}) AND questionUsed = FALSE", tuple(mcqBanksToUse)) 
 
