@@ -13,7 +13,8 @@ from openpyxl import load_workbook
 import secrets
 import smtplib
 from datetime import datetime, timedelta
-from getQuestions import *
+from fpdf import FPDF
+from io import BytesIO
 
 load_dotenv() 
 
@@ -288,15 +289,23 @@ def viewQuestionBanks():
 @app.route('/addMcqQuestions')
 @login_required
 def addMcqQuestions():
-    cursor.execute("SELECT * FROM questionBanks WHERE questionBankType=%s;",("mcq",))
+    subj = current_user.subj
+    subj = f"%{subj}%"
+    print(subj)
+    cursor.execute("SELECT * FROM questionBanks WHERE questionBankType=%s and courseID LIKE %s;",("mcq", subj))
     QuestionBanks = cursor.fetchall()
+    print(QuestionBanks)
     return render_template('questions/addMcqQuestions.html', QuestionBanks=QuestionBanks, user_role=current_user.role, username=current_user.username)
 
 @app.route('/addQuestions')
 @login_required
 def addQuestions():
-    cursor.execute("SELECT * FROM questionBanks WHERE questionBankType !=  %s;",("mcq",))
+    subj = current_user.subj
+    subj = f"%{subj}%"
+    print(subj)
+    cursor.execute("SELECT * FROM questionBanks WHERE questionBankType!=%s and courseID LIKE %s;",("mcq", subj))
     QuestionBanks = cursor.fetchall()
+    print(QuestionBanks)
     return render_template('questions/addQuestions.html', QuestionBanks=QuestionBanks, user_role=current_user.role, username=current_user.username)
 
 
@@ -407,8 +416,12 @@ def uploadQuestions():
         except Exception as e:
             flash(f'Error processing file: {str(e)}', 'danger')
             return redirect('/uploadQuestions')
+    subj = current_user.subj
+    subj = f"%{subj}%"
+    print(subj)
+    cursor.execute("SELECT * FROM questionBanks WHERE courseID LIKE %s;",(subj,))
     
-    cursor.execute("SELECT * FROM questionBanks")
+    # cursor.execute("SELECT * FROM questionBanks")
     QuestionBanks = cursor.fetchall()
     
     return render_template('questions/uploadQuestionsDoc.html', QuestionBanks=QuestionBanks, upload_summary=upload_summary, user_role=current_user.role, username=current_user.username)
@@ -475,6 +488,7 @@ def getBanks(courseID):
 
     cursor.execute("SELECT * FROM questionBanks WHERE courseID=%s", (courseID,))
     QuestionBanks = cursor.fetchall()
+    print(QuestionBanks)
 
     return jsonify( QuestionBanks)
 
@@ -608,6 +622,7 @@ def editCourses():
             WHERE t.courseID = %s
         """, (course['courseID'],))
         teacher = cursor.fetchone()
+        print(teacher)
         courses[courses.index(course)]['teacher'] = teacher['username'] if teacher else "Unassigned"
     
     return render_template('hod/manageCourses.html', 
@@ -689,6 +704,8 @@ def deleteCourse(course_id):
         return redirect('/main')
     
     try:
+        cursor.execute("DELETE FROM Teachers WHERE courseID=%s", (course_id,))
+        conn.commit()
         cursor.execute("DELETE FROM Courses WHERE courseID=%s", (course_id,))
         conn.commit()
         flash('Course deleted successfully!', 'success')
@@ -714,8 +731,9 @@ def assign():
         SELECT c.*, s.subjectName 
         FROM Courses c 
         JOIN Subjects s ON c.subjectID = s.subjectID
+        WHERE c.subjectID=%s
         ORDER BY c.courseName
-    """)
+    """, (current_user.subj,))
     courses = cursor.fetchall()
     
     return render_template('hod/assignTeacher.html',
@@ -1417,6 +1435,143 @@ def editMyQuestions():
                          QuestionBanks=QuestionBanks, 
                          user_role=current_user.role, 
                          username=current_user.username)
+
+@app.route('/generateReport', methods=['GET'])
+@login_required
+def generateReportPdf():
+    """
+    Generate a PDF report (system overview + DB stats + README excerpt)
+    """
+    try:
+        # Basic DB stats (reuse existing DB cursor/conn)
+        cursor.execute("SELECT COUNT(*) as count FROM questions")
+        total_questions = cursor.fetchone()['count'] or 0
+
+        cursor.execute("SELECT COUNT(*) as count FROM questionBanks")
+        total_banks = cursor.fetchone()['count'] or 0
+
+        cursor.execute("SELECT COUNT(*) as count FROM Courses")
+        total_courses = cursor.fetchone()['count'] or 0
+
+        cursor.execute("SELECT COUNT(*) as count FROM Subjects")
+        total_subjects = cursor.fetchone()['count'] or 0
+
+        # Top banks (sample)
+        cursor.execute("""
+            SELECT qb.questionBankName, c.courseName, COUNT(q.questionID) as qcount
+            FROM questionBanks qb
+            LEFT JOIN questions q ON qb.questionBankID = q.questionBankID
+            LEFT JOIN Courses c ON qb.courseID = c.courseID
+            GROUP BY qb.questionBankID
+            ORDER BY qcount DESC
+            LIMIT 5
+        """)
+        top_banks = cursor.fetchall()
+
+
+        # Build PDF
+        pdf = FPDF()
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.add_page()
+
+        # ===== HEADER =====
+        pdf.set_font("Arial", "B", 20)
+        pdf.set_text_color(40, 40, 40)
+        pdf.cell(0, 12, "VCKTsAssist: System Report", ln=True, align='C')
+        pdf.ln(2)
+
+        # Line below title
+        pdf.set_draw_color(150, 150, 150)
+        pdf.set_line_width(0.7)
+        pdf.line(10, 25, 200, 25)
+        pdf.ln(10)
+
+        # Reset text color
+        pdf.set_text_color(0, 0, 0)
+
+        # ===== SUMMARY SECTION =====
+        pdf.set_font("Arial", "B", 14)
+        pdf.cell(0, 10, "Report Summary", ln=True)
+        pdf.set_line_width(0.3)
+        pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+        pdf.ln(5)
+
+        pdf.set_font("Arial", size=12)
+        pdf.cell(0, 8, f"Generated by: {current_user.username}", ln=True)
+        pdf.cell(0, 8, f"Total Questions: {total_questions}", ln=True)
+        pdf.cell(0, 8, f"Question Banks: {total_banks}", ln=True)
+        pdf.cell(0, 8, f"Courses: {total_courses}", ln=True)
+        pdf.cell(0, 8, f"Subjects: {total_subjects}", ln=True)
+        pdf.ln(8)
+
+        # ===== TOP BANKS SECTION =====
+        pdf.set_font("Arial", "B", 14)
+        pdf.cell(0, 10, "Top Question Banks (by Question Count)", ln=True)
+        pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+        pdf.ln(5)
+
+        pdf.set_font("Arial", size=12)
+
+        if top_banks:
+            for tb in top_banks:
+                name = tb.get("questionBankName") or tb.get("questionbankname") or "Unnamed"
+                course = tb.get("courseName") or "N/A"
+                qcount = tb.get("qcount") or 0
+
+                # Styled entry box
+                pdf.set_fill_color(245, 245, 245)
+                pdf.set_draw_color(200, 200, 200)
+                pdf.set_line_width(0.2)
+                pdf.multi_cell(
+                    0, 8,
+                    f"Name: {name}\nCourse: {course}\nQuestions: {qcount}",
+                    border=1,
+                    fill=True
+                )
+                pdf.ln(3)
+        else:
+            pdf.cell(0, 8, "No banks found.", ln=True)
+        # pdf = FPDF()
+        # pdf.set_auto_page_break(auto=True, margin=12)
+        # pdf.add_page()
+        # pdf.set_font("Arial", "B", 16)
+        # pdf.cell(0, 10, "VCKTsAssist - System Report", ln=True, align='C')
+        # pdf.ln(6)
+
+        # pdf.set_font("Arial", size=11)
+        # pdf.cell(0, 7, f"Generated by: {current_user.username}", ln=True)
+        # pdf.cell(0, 7, f"Total Questions: {total_questions}", ln=True)
+        # pdf.cell(0, 7, f"Question Banks: {total_banks}", ln=True)
+        # pdf.cell(0, 7, f"Courses: {total_courses}", ln=True)
+        # pdf.cell(0, 7, f"Subjects: {total_subjects}", ln=True)
+        # pdf.ln(6)
+
+        # pdf.set_font("Arial", "B", 12)
+        # pdf.cell(0, 7, "Top Question Banks (by questions):", ln=True)
+        # pdf.ln(2)
+        # pdf.set_font("Arial", size=11)
+        # if top_banks:
+        #     for tb in top_banks:
+        #         name = tb.get('questionBankName') or tb.get('questionbankname') or "Unnamed"
+        #         course = tb.get('courseName') or "N/A"
+        #         qcount = tb.get('qcount') or 0
+        #         pdf.multi_cell(0, 6, f"- {name} ({course}) - {qcount} questions")
+        # else:
+        #     pdf.cell(0, 6, "No banks found", ln=True)
+
+
+        # Stream PDF to client
+        pdf_bytes = pdf.output(dest='S').encode('latin-1')
+        buf = BytesIO(pdf_bytes)
+        buf.seek(0)
+        return send_file(buf,
+                         mimetype='application/pdf',
+                         as_attachment=True,
+                         download_name='VCKTsAssist_report.pdf')
+    except Exception as e:
+        flash(f"Error generating report: {str(e)}", "danger")
+        print(f"Error generating report: {str(e)}")
+        return redirect('/main')
 
 @app.errorhandler(404)
 def pageNotFound(error):
