@@ -63,8 +63,11 @@ def load_user(id):
     return None
 
 # ============= ZA ALIYENSE =============
-
 @app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/login')
 def login():            
     return render_template('login.html')
 
@@ -607,14 +610,18 @@ def editCourses():
     """, (current_user.subj,))
     courses = cursor.fetchall()
     
-    cursor.execute("""
-        SELECT u.username, u.id as teacherID
-        FROM Teachers t
-        JOIN Users u on t.TeacherID = u.id
-        WHERE u.subjectID = %s
-        """, (current_user.subj,))
-    teachers = cursor.fetchall()
-    print(teachers)
+    try:
+        cursor.execute("""
+            SELECT u.username, u.id as teacherID
+            FROM Teachers t
+            JOIN Users u on t.TeacherID = u.id
+            WHERE u.subjectID = %s
+            """, (current_user.subj,))
+        teachers = cursor.fetchall()
+        print(teachers)
+    except Exception as e:
+        flash(f"Error fetching teachers: {str(e)}", 'danger')
+        teachers = []
 
     for course in courses:
         cursor.execute("""
@@ -764,7 +771,7 @@ def assignTeacher():
     except Exception as e:
         flash(f'Error assigning teacher: {str(e)}', 'danger')
     
-    return redirect('/editTeachers')
+    return redirect('/editCourses')
 
 @app.route('/editTeachers', methods=['GET'])
 @login_required

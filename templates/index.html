@@ -1,12 +1,91 @@
-{% extends 'poyambira.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>VCKTsAssist - Smart Question Paper Management</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
+</head>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; }
+    .hero { background: #f8f9fa; padding: 60px 20px; text-align: center; }
+    .hero h1 { font-weight: 700; }
+    .role-card { border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+    footer { background: #343a40; color: #fff; padding: 20px; text-align: center; }
+  </style>
+</head>
+<body>
 
-{% block header %}
-    <h1 class="h2">TsAssist</h1>
-{% endblock %}
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="#">VCKTsAssist</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="btn btn-outline-dark me-2" href="/login">Log In</a></li>
+          <li class="nav-item"><a class="btn btn-primary" href="/signup">Sign Up</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
 
-{% block content %}
-<div>
-    <h2>Welcome to TsAssist!</h2>
-    <p>Your assistant for managing question banks and generating exam papers.</p>
-</div>
-{% endblock %}
+  <!-- Hero Section -->
+  <div class="hero">
+    <h1 class="display-5">Secure <span class="text-primary">Role-Based Management</span> for Question Papers</h1>
+    <p class="lead">VCKTsAssist is a web application designed to streamline the creation, management, and generation of question papers for educational institutions.<br>
+      It empowers Teachers, Heads of Departments (HoDs), and Examination Cell with tailored access to upload questions, manage banks,<br>
+      and assemble papers automatically based on course structure, marking schemes, and question types.</p>
+    <a href="/login" class="btn btn-primary btn-lg me-2">Get Started Now</a>
+  </div>
+
+  <!-- Role Features -->
+  <div class="container my-5">
+    <div class="row text-center">
+      <div class="col-md-4">
+        <div class="role-card bg-light">
+          <h3 class="text-warning">Teachers</h3>
+          <ul class="list-unstyled">
+            <li>Upload questions manually or via Excel/Word</li>
+            <li>Generate papers by course, pattern, and marks</li>
+            <li>Manage and edit personal question bank</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="role-card bg-light">
+          <h3 class="text-purple">Head of Department</h3>
+          <ul class="list-unstyled">
+            <li>Manage courses and department-level teachers</li>
+            <li>Review and delete flagged or used questions</li>
+            <li>Receive alerts when question banks run low</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="role-card bg-light">
+          <h3 class="text-primary">Examination Cell</h3>
+          <ul class="list-unstyled">
+            <li>Cross-department access to all papers</li>
+            <li>Review and print generated question papers</li>
+            <li>Manage examination schedules and logistics</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2026 VCKTsAssist | Built for educators and examiners</p>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+</body>
+</html>
