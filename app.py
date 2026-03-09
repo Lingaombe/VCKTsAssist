@@ -824,6 +824,8 @@ def removeTeacher(user_id):
         return redirect('/main')
     
     try:
+        cursor.execute("DELETE FROM Teachers WHERE teacherID=%s", (user_id,))
+        conn.commit()
         cursor.execute("DELETE FROM Users WHERE id=%s AND urole='teacher'", (user_id,))
         conn.commit()
         flash('Teacher removed from department!', 'success')
@@ -911,7 +913,7 @@ def editSubjectRoute():
     
     return redirect('/editSubjects')
 
-@app.route('/deleteSubject/<int:subject_id>', methods=['GET'])
+@app.route('/deleteSubject/<subject_id>', methods=['GET'])
 @login_required
 def deleteSubject(subject_id):
     if current_user.role != 'hod':

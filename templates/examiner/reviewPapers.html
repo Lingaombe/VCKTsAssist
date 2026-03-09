@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container my-5">
-    <h2 class="mb-4">Review & Analyze Question Papers</h2>
+    <h2 class="mb-4">Review & Analyze Questions</h2>
     
     <!-- Filter Section -->
     <div class="card mb-4" style="border-left: 4px solid #007bff;">
@@ -110,9 +110,6 @@
                                             onclick="viewPaper('{{ paper.courseID }}', '{{ paper.courseName }}', '{{ paper.totalMarks }}', '{{ paper.paperType }}')">
                                             View
                                         </button>
-                                        <a href="/printPaper/{{ paper.courseID }}" class="btn btn-sm btn-success" target="_blank">
-                                            Print
-                                        </a>
                                     </td>
                                 </tr>
                             {% endfor %}

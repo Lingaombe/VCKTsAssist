@@ -8,6 +8,7 @@
     <title>{% block title %} TsAssist {% endblock %}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="favicon.png">
 
 <style>
 #sidebar {
@@ -89,12 +90,12 @@
                                 Manage Banks
                             </a>
                         </li>
-                        <li class="nav-item">
+                        <!-- <li class="nav-item">
                             <a class="nav-link" href="/editPapers">
                                 <i class="bi bi-file-earmark-pdf"></i>
                                 Manage Papers
                             </a>
-                        </li>
+                        </li> -->
                     {% elif user_role == 'examiner' %}
                         <li class="nav-item">
                             <a class="nav-link" href="/reviewPapers">
