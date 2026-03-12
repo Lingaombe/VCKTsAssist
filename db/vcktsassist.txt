@@ -1,0 +1,185 @@
+made in mysql database
+
+create database VCKTsAssist;
+use VCKTsAssist;
+
+SET GLOBAL max_allowed_packet=32*1024*1024;
+
+
+create table Users(
+subjectID varchar(100) not null,
+id int primary key auto_increment,
+username varchar(100) not null,
+upassword varchar(100) not null,
+urole varchar(100) not null,
+email varchar(100) not null unique,
+foreign key (subjectID) references Subjects(subjectID)
+);
+
+create table Streams(
+streamID varchar(100) primary key,
+streamName varchar(100) not null,
+streamLevel varchar(100) not null
+);
+
+create table Subjects(
+streamID varchar(100) not null,
+subjectID varchar(100) primary key,
+subjectName varchar(100) not null,
+foreign key (streamID) references Streams(streamID)
+);
+
+create table Courses(
+subjectID varchar(100) not null,
+courseID varchar(100) primary key,
+courseSem varchar(100) not null,
+courseName varchar(100) not null,
+marksInternal int,
+marksExternal int,
+marksPractical int,
+foreign key (subjectID) references Subjects(subjectID)
+);
+
+
+create table questionBanks(
+courseID varchar(100) not null,
+questionBankID int primary key auto_increment,
+questionBankType varchar(100) not null,
+questionBankName varchar(100) unique not null,
+foreign key (courseID) references Courses(courseID)
+);
+
+
+create table questions(
+questionBankID int not null,
+questionID int primary key auto_increment,
+questionBody varchar(1000) unique not null,
+questionGrade varchar(100) not null,
+questionPhoto varchar(200),
+questionUnit varchar(100) not null,
+questionOption1 varchar(100),
+questionOption2 varchar(100),
+questionOption3 varchar(100),
+questionOption4 varchar(100),
+questionMarks int not null,
+questionUsed boolean default false,
+foreign key (questionBankID) references questionBanks(questionBankID)
+);
+
+create table Teachers(
+courseID varchar(100),
+teacherID int,
+foreign key (courseID) references Courses(courseID),
+foreign key (teacherID) references Users(id)
+);
+
+
+ALTER TABLE questions
+ADD COLUMN isTrueFalse BOOLEAN DEFAULT FALSE;
+
+DELETE FROM questions WHERE questionUsed = 1 LIMIT 1000;
+ALTER TABLE questions
+MODIFY questionGrade VARCHAR(100) NOT NULL DEFAULT 'A',
+MODIFY questionUnit VARCHAR(100) NOT NULL DEFAULT 'I';
+
+select count(questionOption1) as marks from questions where questionOption1 != " " group by questionBankID;
+
+select * from questionBanks;
+select * from questions;
+select * from subjects;
+select * from courses;
+select* from users;
+delete from questions where questionID<29;
+SELECT * FROM courses WHERE courseID='DSC02ACC52';
+SELECT * FROM questionBanks WHERE questionBankType="mcq" and courseID LIKE "%csc%";
+desc questions;
+
+update questions set questionUsed = 0 where questionID > 1;
+
+delete from questions where questionBankID=8;
+desc questions;
+
+insert into Streams values (100, "BSc", "UG"),(101, "BCom", "UG"),(102, "BCA", "UG"),(103, "Mcom", "PG"),(104, "BBA", "UG"),(105, "BVOC", "UG"),(106, "BCS", "UG");
+insert into Streams values (107, "BA", "UG");
+delete from Streams where streamID = "107";
+insert into Streams values (103, "BA", "UG");
+
+insert into Courses values ("CSC","DSC03CSC11","I","Problem Solving using Computers-I",10,40,0),
+("CSC","DSC03CSC12","I","Introduction to DBMS-I",10,40,0),
+("CSC","MIN03CSC31 ","III","Introduction to Operating System-I",10,40,0),
+("CSC","DSC03CSC31","III","Operating System-I",10,40,0),
+("CSC","OEL03CSC22","II","Introduction to Web-II",10,40,0),
+("CSC","DSC03CSC54","VI","Introduction to JAVA",10,40,0),
+("CSC","DSC03CSC42","IV","Algorithm Analysis and Data Structures",10,40,0),
+("CSC","DSC03CSC63","V","Internet Technologies-II",10,40,0);
+
+select * FROM questionBanks;
+
+insert into Subjects values (101,"ACC","Accountancy"),(101,"BAM","Business Administration"),(100,"CSC","Computer Science"),(105,"AFM","Animation & Film-Making"),(100,"ELE","Electronics");
+select * from Subjects;
+
+INSERT INTO questions (questionBankID, questionBody, questionGrade, questionUnit, questionOption1, questionOption2, questionOption3, questionOption4, questionMarks) VALUES 
+(6,'Which interface is the root of the Java Collections Framework?', 'A', 3, 'Collection', 'Iterable', 'List', 'Map', 1),
+(6,'Which collection allows duplicate elements?', 'A', 3, 'Set', 'List', 'Map', 'Queue', 1),
+(6,'Which class maintains elements in sorted order?', 'A', 3, 'HashSet', 'TreeSet', 'LinkedHashSet', 'Vector', 1),
+(6,'Which collection guarantees insertion order?', 'A', 3, 'HashSet', 'TreeSet', 'LinkedHashSet', 'PriorityQueue', 1),
+(6,'Which map implementation allows null keys and values?', 'B', 3, 'HashMap', 'TreeMap', 'Hashtable', 'ConcurrentHashMap', 1),
+(6,'Which collection is synchronized by default?', 'B', 3, 'ArrayList', 'HashMap', 'Vector', 'HashSet', 1),
+(6,'Which interface does Queue extend?', 'A', 3, 'Collection', 'List', 'Set', 'Map', 1),
+(6,'Which method removes all elements from a collection?', 'A', 3, 'clear()', 'removeAll()', 'delete()', 'empty()', 1),
+(6,'Which class implements a resizable array?', 'A', 3, 'ArrayList', 'Vector', 'LinkedList', 'Stack', 1),
+(6,'Which collection is best for LIFO operations?', 'A', 3, 'Queue', 'Stack', 'Deque', 'PriorityQueue', 1),
+(6,'Which collection is best for FIFO operations?', 'A', 3, 'Stack', 'Queue', 'Deque', 'Vector', 1),
+(6,'Which map maintains insertion order?', 'B', 3, 'HashMap', 'TreeMap', 'LinkedHashMap', 'ConcurrentHashMap', 1),
+(6,'Which collection does not allow duplicate keys?', 'B', 3, 'List', 'Set', 'Map', 'Queue', 1),
+(6,'Which collection is backed by a hash table?', 'B', 3, 'HashSet', 'TreeSet', 'LinkedList', 'ArrayList', 1),
+(6,'Which collection allows fast lookup by key?', 'A', 3, 'List', 'Set', 'Map', 'Queue', 1),
+(6,'Which collection is best for priority-based ordering?', 'B', 3, 'Stack', 'Queue', 'PriorityQueue', 'Deque', 1),
+(6,'Which method checks if a collection is empty?', 'A', 3, 'isEmpty()', 'size()', 'empty()', 'clear()', 1),
+(6,'Which collection is fail-fast during iteration?', 'C', 3, 'HashMap', 'ConcurrentHashMap', 'Vector', 'Hashtable', 1),
+(6,'Which collection is fail-safe during iteration?', 'C', 3, 'HashMap', 'ConcurrentHashMap', 'ArrayList', 'TreeSet', 1),
+(6,'Which collection is best for implementing a double-ended queue?', 'B', 3, 'Stack', 'Queue', 'Deque', 'PriorityQueue', 1);
+
+INSERT INTO questions (questionBankID, questionBody, questionGrade, questionUnit, questionMarks) VALUES
+(7,'Explain the lifecycle of a servlet with suitable methods.','A',1,4),
+(7,'Differentiate between HashMap and Hashtable in Java.','B',2,4),
+(7,'What is JDBC? Describe the different types of JDBC drivers.','C',3,4),
+(7,'Explain the difference between doGet() and doPost() methods in servlets.','B',1,4),
+(7,'What is RMI in Java? How does it differ from socket programming?','A',3,4),
+(7,'Explain the role of PreparedStatement in JDBC. Why is it preferred over Statement?','C',2,4),
+(7,'What is the difference between ArrayList and LinkedList?','A',2,4),
+(7,'Explain the concept of session management in servlets.','B',3,4),
+(7,'What is the difference between Comparable and Comparator interfaces?','C',1,4),
+(7,'Explain the working of TreeSet and how it maintains order.','B',2,4),
+(7,'What is the purpose of synchronized collections? Give examples.','A',3,4),
+(7,'Explain the difference between forward() and sendRedirect() in servlets.','C',2,4),
+(7,'What is the difference between Vector and ArrayList?','B',1,4),
+(7,'Explain the concept of fail-fast and fail-safe iterators with examples.','A',3,4),
+(7,'What is the difference between ServletContext and ServletConfig?','C',1,4),
+(7,'Explain the difference between HashSet and LinkedHashSet.','B',2,4),
+(7,'What is the role of CallableStatement in JDBC?','A',3,4),
+(7,'Explain the difference between stateless and stateful session beans in EJB.','C',2,4),
+(7,'What is the difference between JSP directives and JSP actions?','B',1,4),
+(7,'Explain the difference between checked and unchecked exceptions in Java.','A',2,4);
+
+INSERT INTO questions (questionBankID, questionBody, questionGrade, questionUnit, questionMarks) VALUES
+(12,'Explain the complete lifecycle of a servlet with a neat diagram. Discuss the role of init(), service(), and destroy() methods.','B',1,8),
+(12,'Differentiate between HashMap, Hashtable, and ConcurrentHashMap. Explain their thread-safety, null handling, and performance characteristics.','C',2,8),
+(12,'Describe the architecture of JDBC. Explain the four types of JDBC drivers with advantages and disadvantages.','A',3,8),
+(12,'Discuss session management techniques in servlets. Compare cookies, URL rewriting, and HttpSession with examples.','B',2,8),
+(12,'Explain Remote Method Invocation (RMI) in Java. Describe the steps involved in creating and invoking a remote object.','A',1,8),
+(12,'What is the difference between PreparedStatement and CallableStatement in JDBC? Explain with examples of parameter binding and stored procedure calls.','C',3,8),
+(12,'Discuss the differences between ArrayList, LinkedList, and Vector. Explain their internal implementations and use cases.','B',1,8),
+(12,'Explain the concept of fail-fast and fail-safe iterators in Java Collections. Provide examples of collections that exhibit each behavior.','A',2,8),
+(12,'Describe the differences between ServletContext and ServletConfig. Explain their roles with suitable examples.','C',3,8),
+(12,'Explain the working of JSP lifecycle. Discuss translation, compilation, initialization, execution, and cleanup phases.','B',2,8),
+(12,'Discuss the differences between stateless and stateful session beans in EJB. Explain scenarios where each is preferred.','A',3,8),
+(12,'Explain the difference between Comparable and Comparator interfaces. Provide code examples to illustrate sorting using both.','C',1,8),
+(12,'Describe the architecture of Java Message Service (JMS). Explain point-to-point and publish-subscribe models with examples.','B',2,8),
+(12,'Explain the difference between forward() and sendRedirect() in servlets. Discuss their impact on request/response objects.','A',1,8),
+(12,'Discuss the role of TreeSet and TreeMap in maintaining sorted collections. Explain how they use Comparable and Comparator.','C',3,8),
+(12,'Explain the difference between checked and unchecked exceptions in Java. Provide examples and discuss best practices for exception handling.','B',1,8),
+(12,'Describe the working of PriorityQueue in Java. Explain how elements are ordered and give a practical use case.','A',2,8),
+(12,'Explain the architecture of Hibernate. Discuss how it simplifies database interaction compared to JDBC.','C',3,8),
+(12,'Discuss the role of filters in servlets. Explain how they can be used for logging, authentication, and request modification.','B',2,8),
+(12,'Explain the difference between JSP directives (<%@ %>) and JSP actions (<jsp:...>).','A',1,8);
