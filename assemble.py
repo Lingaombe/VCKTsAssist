@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv() 
 
 import mysql.connector
-conn = mysql.connector.connect(host="localhost", user="root", password="Lingaombe@2001", database="VCKTsAssist") 
+conn = mysql.connector.connect(host="localhost", user="root", password="", database="VCKTsAssist") 
 cursor = conn.cursor(dictionary=True)
 
 
